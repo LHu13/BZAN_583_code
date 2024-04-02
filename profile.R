@@ -9,7 +9,7 @@ df <- data.frame(
 # Creates a function to group companies, find their averages, and return it as a dataframe
 company_mean_finder <- function(df){
   # Return the dataframe with the companies grouped and their averages found
-  return(aggregate(Sales ~ Company, data = df, FUN = mean))
+  return(aggregate(Sales ~ Company, data = df, FUN = mean, na.action=na.pass))
 }
 
 # Profile the function performance
