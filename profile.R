@@ -2,8 +2,8 @@
 set.seed(123)
 # Create a sample data frame with random company names represented as letters and sales ranging from 1 to 200
 df <- data.frame(
-  Company= sample(letters[1:5], 10000000, replace = TRUE),
-  Sales = sample(1:200, 10000000, replace = TRUE)
+  Company= sample(letters[1:5], 1000000, replace = TRUE),
+  Sales = sample(1:200, 1000000, replace = TRUE)
 )
 
 # Creates a function that groups the rows by company and calculates the mean
