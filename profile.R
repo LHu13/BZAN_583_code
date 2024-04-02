@@ -6,7 +6,7 @@ df <- data.frame(
   Sales = sample(1:200, 500000, replace = TRUE)
 )
 
-# Creates function to group companies, find their averages, and return it as a dataframe
+# Creates a function to group companies, find their averages, and return it as a dataframe
 company_mean_finder <- function(df){
   # Return the dataframe with the companies grouped and their averages found
   return(aggregate(Sales ~ Company, data = df, FUN = mean))
