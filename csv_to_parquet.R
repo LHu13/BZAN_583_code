@@ -1,0 +1,4 @@
+library(arrow)
+library(dplyr)
+tlc = open_dataset("/projects/bckj/Team3/flight_data_csv/itineraries.csv")
+tlc %>% write_parquet(sink = "/projects/bckj/Team3/flight_data_parquet/itineraries.parquet")
