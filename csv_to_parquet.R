@@ -1,3 +1,4 @@
+arrow::install_arrow(verbose = TRUE)
 library(arrow)
 library(dplyr)
 tlc = open_dataset("/projects/bckj/Team3/flight_data_csv/itineraries.csv")
