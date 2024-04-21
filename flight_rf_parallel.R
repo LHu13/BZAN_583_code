@@ -1,3 +1,6 @@
+
+set.seed(123) #for reproducibility
+
 ## LOAD NECESSARY PACKAGES
 #Define function to check if packages are installed and install them if not
 package_checker <- function(packages) {
