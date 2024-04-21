@@ -1,13 +1,26 @@
-#load all the libraries
-library(arrow)
-library(dplyr)
-library(tidyr)
-library(MERO)
-library(randomForest)
-library(parallel)
+## LOAD NECESSARY PACKAGES
+#Define function to check if packages are installed and install them if not
+package_checker <- function(packages) {
+  #Check if packages are installed
+  missing_packages <- setdiff(packages, installed.packages()[,"Package"])
+  #Install missing packages
+  if (length(missing_packages) > 0) {
+    install.packages(missing_packages, dependencies = TRUE)
+  }
+  #Load all packages
+  lapply(packages, function(pkg) {
+    library(pkg, character.only = TRUE, logical.return = TRUE)
+  })
+}
+#List of packages needed
+packages <- c("arrow", "dplyr", "tidyr","MERO","randomForest","parallel")
+#Use package_checker function to load necessary libraries
+package_checker(packages)
 
+
+## DATA LOADING
 #Load in the dataset
-ds <- open_dataset("C:\\Users\\liana\\OneDrive\\Desktop\\BZAN_583_data\\TEST_itineraries", 
+ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries", 
                    partitioning = c("flightDate"), 
                    unify_schemas = TRUE) 
 
@@ -44,7 +57,8 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
-## 
+
+## SET UP FOR PARALLEL
 #commandArgs(TRUE)[2] - gets the second command-line argument as a numeric value
 #Determines the number of CPU cores for parallel processing
 nc <- as.numeric(commandArgs(TRUE)[2])
@@ -52,6 +66,7 @@ nc <- as.numeric(commandArgs(TRUE)[2])
 ntree <- lapply(splitIndices(500, nc), length) 
 
 
+## TRAIN RANDOM FOREST MODEL IN PARALLEL
 #Define function to train random forest model
 rf <- function(x, train) randomForest(totalFare ~ ., train, ntree=x, norm.votes = FALSE)
 #Applies the random forest training function in parallel on the number of trees
@@ -63,6 +78,7 @@ rf.parts <- mclapply(ntree, #number of trees to be built on a CPU core
 rf.all <- do.call(combine, rf.parts) 
 
 
+## PREDICT ON TEST DATA
 #Splits the test data into chunks based on number of CPU cores
 crows <- splitIndices(nrow(test), nc) 
 #Define function to predict on test data
