@@ -2,23 +2,13 @@
 set.seed(123) #for reproducibility
 
 ## LOAD NECESSARY PACKAGES
-#Define function to check if packages are installed and install them if not
-package_checker <- function(packages) {
-  #Check if packages are installed
-  missing_packages <- setdiff(packages, installed.packages()[,"Package"])
-  #Install missing packages
-  if (length(missing_packages) > 0) {
-    install.packages(missing_packages, dependencies = TRUE)
-  }
-  #Load all packages
-  lapply(packages, function(pkg) {
-    library(pkg, character.only = TRUE, logical.return = TRUE)
-  })
-}
-#List of packages needed
-packages <- c("arrow", "dplyr", "tidyr","MERO","randomForest","parallel")
-#Use package_checker function to load necessary libraries
-package_checker(packages)
+#load all the libraries
+library(arrow)
+library(dplyr)
+library(tidyr)
+library(MERO)
+library(randomForest)
+library(parallel)
 
 
 ## DATA LOADING
