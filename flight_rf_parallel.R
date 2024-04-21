@@ -60,6 +60,8 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
+## START TIMING ON PARALLEL TRAINING
+Rprof()
 
 ## SET UP FOR PARALLEL
 #commandArgs(TRUE)[2] - gets the second command-line argument as a numeric value
@@ -101,3 +103,8 @@ correct <- sum(pred == test$totalFare)
 cat("Proportion Correct:", correct/(n_test), "\n") 
 #Prints the RMSE
 cat("RMSE:",RMSE(test$totalFare,pred), "\n") 
+
+## TIME TRAINING
+#Document timing
+Rprof(NULL)
+summaryRprof()

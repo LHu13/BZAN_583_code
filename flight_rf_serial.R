@@ -61,6 +61,8 @@ train <- data[-i_test, ]
 test <- data[i_test, ]
 
 
+## START TIMING ON SERIAL TRAINING
+Rprof()
 
 ## TRAIN THE RANDOM FOREST MODEL
 #Train random forest model and call it rf.all
@@ -82,3 +84,8 @@ correct <- sum(pred == test$totalFare)
 cat("Proportion Correct:", correct/(n_test), "\n") 
 #Prints the RMSE
 cat("RMSE:",RMSE(test$totalFare,pred), "\n") 
+
+## TIME TRAINING
+#Document timing
+Rprof(NULL)
+summaryRprof()
