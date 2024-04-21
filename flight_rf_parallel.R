@@ -24,6 +24,8 @@ data <- ds %>%
   #convert time columns into datetime format
   mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
   mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
+  #DROPS ALL OTHER MONTHS BESIDES MAY AND JUNE BC DATA FUNKY
+  filter(as.integer(format(segmentsArrivalTimeRaw, "%m")) %in% c(5, 6)) %>%
   #transforms number columns from character to numeric
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
