@@ -15,9 +15,5 @@ module load r
 module list
 
 time Rscript flight_rf_serial.R
-time Rscript flight_rf_parallel.R --args 1
-time Rscript flight_rf_parallel.R --args 2
-time Rscript flight_rf_parallel.R --args 4
-time Rscript flight_rf_parallel.R --args 8
-time Rscript flight_rf_parallel.R --args 16
+
 
