@@ -10,6 +10,8 @@ library(MERO)
 library(randomForest)
 library(parallel)
 
+#TIME IT
+start_time <- Sys.time()
 
 ### DATA LOADING 
 #Load in the dataset
@@ -75,3 +77,6 @@ cat("Proportion Correct:", correct/(n_test), "\n")
 #Prints the RMSE
 cat("RMSE:",RMSE(test$totalFare,pred), "\n") 
 
+#TIME IT
+end_time <- Sys.time()
+cat("Time Taken:", round(end_time-start_time,2))
