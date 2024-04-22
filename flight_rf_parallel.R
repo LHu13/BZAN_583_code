@@ -42,6 +42,7 @@ data <- ds %>%
   drop_na() %>% #drops the nas
   collect() 
 
+print("Data prep done")
 
 ## PREPARE DATA FOR TRAINING AND TESTING
 #Counts how many rows there are in the dataset
@@ -55,6 +56,7 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
+print("Data split done")
 
 ## SET UP FOR PARALLEL
 #commandArgs(TRUE)[2] - gets the second command-line argument as a numeric value
@@ -75,6 +77,7 @@ rf.parts <- mclapply(ntree, #number of trees to be built on a CPU core
 #Combines the results of the parallel trained random forest models into rf.all
 rf.all <- do.call(combine, rf.parts) 
 
+print("RF train done")
 
 ## PREDICT ON TEST DATA
 #Splits the test data into chunks based on number of CPU cores
@@ -88,6 +91,7 @@ cpred <- mclapply(crows, #data selection
 #Combines the predictions from the chunks of data into one vector
 pred <- do.call(c, cpred)                            
 
+print("Data predict done")
 
 ## CALCULATE THE ACCURACY
 #Counts how many predictions match what it actually is in the dataset
@@ -101,3 +105,4 @@ cat("RMSE:",RMSE(test$totalFare,pred), "\n")
 end_time <- Sys.time()
 cat("Time Taken:", round(end_time-start_time,2))
 
+print("Done done")

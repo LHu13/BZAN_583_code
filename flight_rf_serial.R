@@ -42,6 +42,8 @@ data <- ds %>%
   drop_na() %>% #drops the nas
   collect() 
 
+print("Data prep done")
+
 
 ## PREPARE DATA FOR TRAINING AND TESTING
 #Counts how many rows there are in the dataset
@@ -55,6 +57,7 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
+print("Data split done")
 
 ## TRAIN THE RANDOM FOREST MODEL
 #Train random forest model and call it rf.all
@@ -63,11 +66,13 @@ rf.all <- randomForest(totalFare ~ ., #chooses the column being predicted
                       ntree = 500, #builds 500 trees
                       norm.votes = FALSE) #disables normalizing of votes among trees
 
+print("RF training done")
 
 ## PREDICT FOR TEST SET WITH TRAINED RANDOM FOREST MODEL
 #Uses the trained random forest model to predict for the test set
 pred <- predict(rf.all, test) 
 
+print("Predictions done")
 
 ## CALCULATE THE ACCURACY
 #Counts how many predictions match what it actually is in the dataset
@@ -80,3 +85,5 @@ cat("RMSE:",RMSE(test$totalFare,pred), "\n")
 #TIME IT
 end_time <- Sys.time()
 cat("Time Taken:", round(end_time-start_time,2))
+
+print("Done done")
