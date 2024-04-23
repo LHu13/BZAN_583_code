@@ -78,7 +78,7 @@ rf.parts <- mclapply(ntree, #number of trees to be built on a CPU core
 #Combines the results of the parallel trained random forest models into rf.all
 rf.all <- do.call(combine, rf.parts) 
 
-print("RF train done")
+print("RF training done")
 
 ## PREDICT ON TEST DATA
 #Splits the test data into chunks based on number of CPU cores
@@ -92,13 +92,9 @@ cpred <- mclapply(crows, #data selection
 #Combines the predictions from the chunks of data into one vector
 pred <- do.call(c, cpred)                            
 
-print("Data predict done")
+print("Predictions done")
 
 ## CALCULATE THE ACCURACY
-#Counts how many predictions match what it actually is in the dataset
-correct <- sum(pred == test$totalFare) 
-#Prints the amount of data correct
-cat("Proportion Correct:", correct/(n_test), "\n") 
 #Prints the RMSE
 cat("RMSE:",RMSE(test$totalFare,pred), "\n") 
 

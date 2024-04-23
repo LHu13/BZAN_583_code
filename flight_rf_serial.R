@@ -76,10 +76,6 @@ pred <- predict(rf.all, test)
 print("Predictions done")
 
 ## CALCULATE THE ACCURACY
-#Counts how many predictions match what it actually is in the dataset
-correct <- sum(pred == test$totalFare) 
-#Prints the amount of data correct
-cat("Proportion Correct:", correct/(n_test), "\n") 
 #Prints the RMSE
 cat("RMSE:",RMSE(test$totalFare,pred), "\n") 
 
