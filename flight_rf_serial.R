@@ -24,6 +24,14 @@ ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries",
 #Clean, format, and prepare data
 data <- ds %>%
   filter(isNonStop == "True") %>% #remove all the not nonstop flights
+  #drop unnecessary columns
+  select(-c("segmentsDepartureTimeEpochSeconds", #repeat info
+            "segmentsArrivalTimeEpochSeconds", #repeat info
+            "segmentsAirlineCode", #repeat info
+            "legId", #unnecessary
+            "travelDuration", #repeat info
+            "fareBasisCode")) %>% #unnecessary
+  collect() %>%
   #convert time columns into datetime format
   mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
   mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
@@ -32,13 +40,7 @@ data <- ds %>%
   #transforms number columns from character to numeric
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
-  #drop unnecessary columns
-  select(-c("segmentsDepartureTimeEpochSeconds", #repeat info
-            "segmentsArrivalTimeEpochSeconds", #repeat info
-            "segmentsAirlineCode", #repeat info
-            "legId", #unnecessary
-            "travelDuration", #repeat info
-            "fareBasisCode")) %>% #unnecessary
+  
   drop_na() %>% #drops the nas
   collect() 
 
