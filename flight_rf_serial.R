@@ -13,7 +13,7 @@ library(parallel)
 #TIME IT
 start_time <- Sys.time()
 
-print("Starting data load.")
+print("Starting serial data load.")
 
 ### DATA LOADING 
 #Load in the dataset
@@ -43,7 +43,7 @@ data <- ds %>%
   drop_na() %>% #drops the nas
   collect() 
 
-print("Data prep done")
+print("Serial data prep done")
 
 
 ## PREPARE DATA FOR TRAINING AND TESTING
@@ -58,7 +58,7 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
-print("Data split done")
+print("Serial data split done")
 
 ## TRAIN THE RANDOM FOREST MODEL
 #Train random forest model and call it rf.all
@@ -67,13 +67,13 @@ rf.all <- randomForest(totalFare ~ ., #chooses the column being predicted
                       ntree = 500, #builds 500 trees
                       norm.votes = FALSE) #disables normalizing of votes among trees
 
-print("RF training done")
+print("Serial RF training done")
 
 ## PREDICT FOR TEST SET WITH TRAINED RANDOM FOREST MODEL
 #Uses the trained random forest model to predict for the test set
 pred <- predict(rf.all, test) 
 
-print("Predictions done")
+print("Serial predictions done")
 
 ## CALCULATE THE ACCURACY
 #Prints the RMSE
@@ -83,4 +83,4 @@ cat("RMSE:",RMSE(test$totalFare,pred), "\n")
 end_time <- Sys.time()
 cat("Time Taken:", round(end_time-start_time,2))
 
-print("Done done")
+print("Serial done done")
