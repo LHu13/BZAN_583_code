@@ -68,6 +68,9 @@ cat("Parallel data split done", Sys.time(),"\n")
 #commandArgs(TRUE)[2] - gets the second command-line argument as a numeric value
 #Determines the number of CPU cores for parallel processing
 nc <- as.numeric(commandArgs(TRUE)[2])
+
+cat("Number of cores:", nc)
+
 #Determines number of trees, splits 500 trees on available CPU cores 
 ntree <- lapply(splitIndices(500, nc), length) 
 
