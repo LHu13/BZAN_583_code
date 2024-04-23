@@ -31,7 +31,11 @@ data <- ds %>%
             "legId", #unnecessary
             "travelDuration", #repeat info
             "fareBasisCode")) %>% #unnecessary
-  collect() %>%
+  collect()
+
+print("Finished first parallel data clean.")
+
+data <- data %>%
   #convert time columns into datetime format
   mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
   mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
@@ -41,8 +45,8 @@ data <- ds %>%
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
 
-  drop_na() %>% #drops the nas
-  collect() 
+  drop_na() #drops the nas
+
 
 cat("Parallel data prep done", Sys.time(),"\n")
 
