@@ -10,10 +10,7 @@ library(MERO)
 library(randomForest)
 library(parallel)
 
-#TIME IT
-start_time <- Sys.time()
-
-print("Parallel starting data load.")
+cat("Parallel starting data load.\n")
 
 ## DATA LOADING
 #Load in the dataset
@@ -33,7 +30,7 @@ data <- ds %>%
             "fareBasisCode")) %>% #unnecessary
   collect()
 
-print("Finished first parallel data clean.")
+cat("Finished first parallel data clean.", format(Sys.time(), "%H:%M:%S"),"\n")
 
 data <- data %>%
   #convert time columns into datetime format
@@ -41,6 +38,7 @@ data <- data %>%
   mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
   #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
   filter(as.integer(format(segmentsArrivalTimeRaw, "%m")) %in% c(5)) %>%
+  filter(as.integer(format(segmentsArrivalTimeRaw, "%d")) %in% c(1)) %>%
   #transforms number columns from character to numeric
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
@@ -48,7 +46,7 @@ data <- data %>%
   drop_na() #drops the nas
 
 
-cat("Parallel data prep done", Sys.time(),"\n")
+cat("Parallel data preparation done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## PREPARE DATA FOR TRAINING AND TESTING
 #Counts how many rows there are in the dataset
@@ -62,7 +60,11 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
-cat("Parallel data split done", Sys.time(),"\n")
+cat("Parallel data split done", format(Sys.time(), "%H:%M:%S"),"\n")
+
+
+#TIME IT
+start_time <- Sys.time()
 
 ## SET UP FOR PARALLEL
 #commandArgs(TRUE)[2] - gets the second command-line argument as a numeric value
@@ -86,7 +88,7 @@ rf.parts <- mclapply(ntree, #number of trees to be built on a CPU core
 #Combines the results of the parallel trained random forest models into rf.all
 rf.all <- do.call(combine, rf.parts) 
 
-cat("Parallel RF training done", Sys.time(),"\n")
+cat("Parallel random forest training done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## PREDICT ON TEST DATA
 #Splits the test data into chunks based on number of CPU cores
@@ -100,7 +102,7 @@ cpred <- mclapply(crows, #data selection
 #Combines the predictions from the chunks of data into one vector
 pred <- do.call(c, cpred)                            
 
-cat("Predictions done", Sys.time(),"\n")
+cat("Parallel predictions done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## CALCULATE THE ACCURACY
 #Prints the RMSE
@@ -108,6 +110,7 @@ cat("RMSE:",RMSE(test$totalFare,pred), "\n")
 
 #TIME IT
 end_time <- Sys.time()
-cat("Time Taken:", round(end_time-start_time,2))
 
-print("Done done")
+cat("Time Taken:", round(end_time-start_time,2),"\n")
+
+cat("Parallel", nc, " cores random forest model done")

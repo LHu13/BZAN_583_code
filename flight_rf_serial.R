@@ -10,12 +10,9 @@ library(MERO)
 library(randomForest)
 library(parallel)
 
-#TIME IT
-start_time <- Sys.time()
+cat("Serial starting data load.\n")
 
-print("Starting serial data load.")
-
-### DATA LOADING 
+## DATA LOADING
 #Load in the dataset
 ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries", 
                    partitioning = c("flightDate"), 
@@ -33,7 +30,9 @@ data <- ds %>%
             "fareBasisCode")) %>% #unnecessary
   collect()
 
-print("Finished first serial data clean.")
+
+cat("Finished first serial data clean.", format(Sys.time(), "%H:%M:%S"),"\n")
+
 
 data <- data %>%
   #convert time columns into datetime format
@@ -41,6 +40,7 @@ data <- data %>%
   mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
   #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
   filter(as.integer(format(segmentsArrivalTimeRaw, "%m")) %in% c(5)) %>%
+  filter(as.integer(format(segmentsArrivalTimeRaw, "%d")) %in% c(1)) %>%
   #transforms number columns from character to numeric
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
@@ -48,7 +48,7 @@ data <- data %>%
   drop_na() #drops the nas
 
 
-print("Serial data prep done")
+cat("Serial data prep done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 
 ## PREPARE DATA FOR TRAINING AND TESTING
@@ -63,7 +63,13 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
-print("Serial data split done")
+
+cat("Serial data split done",format(Sys.time(), "%H:%M:%S"),"\n")
+
+
+#TIME IT
+start_time <- Sys.time()
+
 
 ## TRAIN THE RANDOM FOREST MODEL
 #Train random forest model and call it rf.all
@@ -72,13 +78,13 @@ rf.all <- randomForest(totalFare ~ ., #chooses the column being predicted
                       ntree = 500, #builds 500 trees
                       norm.votes = FALSE) #disables normalizing of votes among trees
 
-print("Serial RF training done")
+cat("Serial random forest training done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## PREDICT FOR TEST SET WITH TRAINED RANDOM FOREST MODEL
 #Uses the trained random forest model to predict for the test set
 pred <- predict(rf.all, test) 
 
-print("Serial predictions done")
+cat("Serial predictions done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## CALCULATE THE ACCURACY
 #Prints the RMSE
@@ -86,6 +92,7 @@ cat("RMSE:",RMSE(test$totalFare,pred), "\n")
 
 #TIME IT
 end_time <- Sys.time()
-cat("Time Taken:", round(end_time-start_time,2))
 
-print("Serial done done")
+cat("Time Taken:", round(end_time-start_time,2), "\n")
+
+print("Serial random forest model done.")
