@@ -13,6 +13,8 @@ library(parallel)
 #TIME IT
 start_time <- Sys.time()
 
+print("Starting data load.")
+
 ### DATA LOADING 
 #Load in the dataset
 ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries", 
