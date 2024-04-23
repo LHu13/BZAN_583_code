@@ -13,7 +13,7 @@ library(parallel)
 #TIME IT
 start_time <- Sys.time()
 
-print("Starting data load.")
+print("Parallel starting data load.")
 
 ## DATA LOADING
 #Load in the dataset
@@ -43,7 +43,7 @@ data <- ds %>%
   drop_na() %>% #drops the nas
   collect() 
 
-print("Data prep done")
+cat("Parallel data prep done", Sys.time(),"\n")
 
 ## PREPARE DATA FOR TRAINING AND TESTING
 #Counts how many rows there are in the dataset
@@ -57,7 +57,7 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
-print("Data split done")
+cat("Parallel data split done", Sys.time(),"\n")
 
 ## SET UP FOR PARALLEL
 #commandArgs(TRUE)[2] - gets the second command-line argument as a numeric value
@@ -78,7 +78,7 @@ rf.parts <- mclapply(ntree, #number of trees to be built on a CPU core
 #Combines the results of the parallel trained random forest models into rf.all
 rf.all <- do.call(combine, rf.parts) 
 
-print("RF training done")
+cat("Parallel RF training done", Sys.time(),"\n")
 
 ## PREDICT ON TEST DATA
 #Splits the test data into chunks based on number of CPU cores
@@ -92,7 +92,7 @@ cpred <- mclapply(crows, #data selection
 #Combines the predictions from the chunks of data into one vector
 pred <- do.call(c, cpred)                            
 
-print("Predictions done")
+cat("Predictions done", Sys.time(),"\n")
 
 ## CALCULATE THE ACCURACY
 #Prints the RMSE
