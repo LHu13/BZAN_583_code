@@ -10,7 +10,7 @@ library(MERO)
 library(randomForest)
 library(parallel)
 
-cat("Parallel starting data load.\n")
+#cat("Parallel starting data load.\n")
 
 ## DATA LOADING
 #Load in the dataset
@@ -30,7 +30,7 @@ data <- ds %>%
             "fareBasisCode")) %>% #unnecessary
   collect()
 
-cat("Finished first parallel data clean.", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Finished first parallel data clean.", format(Sys.time(), "%H:%M:%S"),"\n")
 
 data <- data %>%
   #convert time columns into datetime format
@@ -46,7 +46,7 @@ data <- data %>%
   drop_na() #drops the nas
 
 
-cat("Parallel data preparation done", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Parallel data preparation done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## PREPARE DATA FOR TRAINING AND TESTING
 #Counts how many rows there are in the dataset
@@ -60,7 +60,7 @@ train <- data[-i_test, ]
 #Creates the training dataset by including the randomly chosen test indices from i_test
 test <- data[i_test, ]
 
-cat("Parallel data split done", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Parallel data split done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 
 #TIME IT
@@ -71,7 +71,7 @@ start_time <- Sys.time()
 #Determines the number of CPU cores for parallel processing
 nc <- as.numeric(commandArgs(TRUE)[2])
 
-cat("Number of cores:", nc)
+#cat("Number of cores:", nc)
 
 #Determines number of trees, splits 500 trees on available CPU cores 
 ntree <- lapply(splitIndices(500, nc), length) 
@@ -88,7 +88,7 @@ rf.parts <- mclapply(ntree, #number of trees to be built on a CPU core
 #Combines the results of the parallel trained random forest models into rf.all
 rf.all <- do.call(combine, rf.parts) 
 
-cat("Parallel random forest training done", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Parallel random forest training done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## PREDICT ON TEST DATA
 #Splits the test data into chunks based on number of CPU cores
@@ -102,15 +102,15 @@ cpred <- mclapply(crows, #data selection
 #Combines the predictions from the chunks of data into one vector
 pred <- do.call(c, cpred)                            
 
-cat("Parallel predictions done", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Parallel predictions done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## CALCULATE THE ACCURACY
-#Prints the RMSE
-cat("RMSE:",RMSE(test$totalFare,pred), "\n") 
+#Gets the RMSE
+rf_rmse <- RMSE(test$totalFare,pred)
 
 #TIME IT
 end_time <- Sys.time()
 
+cat( nc, " cores parallel random forest model done \n")
+cat("Model RMSE:", rf_rmse, "\n")
 cat("Time Taken:", round(end_time-start_time,2),"\n")
-
-cat("Parallel", nc, " cores random forest model done")

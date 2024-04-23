@@ -10,7 +10,7 @@ library(MERO)
 library(randomForest)
 library(parallel)
 
-cat("Serial starting data load.\n")
+#cat("Serial starting data load.\n")
 
 ## DATA LOADING
 #Load in the dataset
@@ -31,7 +31,7 @@ data <- ds %>%
   collect()
 
 
-cat("Finished first serial data clean.", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Finished first serial data clean.", format(Sys.time(), "%H:%M:%S"),"\n")
 
 
 data <- data %>%
@@ -48,7 +48,7 @@ data <- data %>%
   drop_na() #drops the nas
 
 
-cat("Serial data prep done", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Serial data prep done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 
 ## PREPARE DATA FOR TRAINING AND TESTING
@@ -64,7 +64,7 @@ train <- data[-i_test, ]
 test <- data[i_test, ]
 
 
-cat("Serial data split done",format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Serial data split done",format(Sys.time(), "%H:%M:%S"),"\n")
 
 
 #TIME IT
@@ -78,21 +78,21 @@ rf.all <- randomForest(totalFare ~ ., #chooses the column being predicted
                       ntree = 500, #builds 500 trees
                       norm.votes = FALSE) #disables normalizing of votes among trees
 
-cat("Serial random forest training done", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Serial random forest training done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## PREDICT FOR TEST SET WITH TRAINED RANDOM FOREST MODEL
 #Uses the trained random forest model to predict for the test set
 pred <- predict(rf.all, test) 
 
-cat("Serial predictions done", format(Sys.time(), "%H:%M:%S"),"\n")
+#cat("Serial predictions done", format(Sys.time(), "%H:%M:%S"),"\n")
 
 ## CALCULATE THE ACCURACY
-#Prints the RMSE
-cat("RMSE:",RMSE(test$totalFare,pred), "\n") 
+#Gets the RMSE
+rf_rmse <- RMSE(test$totalFare,pred)
 
 #TIME IT
 end_time <- Sys.time()
 
-cat("Time Taken:", round(end_time-start_time,2), "\n")
-
 print("Serial random forest model done.")
+cat("Model RMSE:", rf_rmse, "\n")
+cat("Time Taken:", round(end_time-start_time,2),"\n")
