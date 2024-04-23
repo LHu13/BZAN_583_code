@@ -23,7 +23,6 @@ ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries",
 
 #Clean, format, and prepare data
 data <- ds %>%
-  collect() %>%
   filter(isNonStop == "True") %>% #remove all the not nonstop flights
   #convert time columns into datetime format
   mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
