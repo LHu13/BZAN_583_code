@@ -1,58 +1,105 @@
+
 set.seed(123) #for reproducibility
 
 ## LOAD NECESSARY PACKAGES
 #load all the libraries
 library(arrow)
 library(dplyr)
-library(tidyr)
-library(parallel)
 
-#TIME IT
-start_time <- Sys.time()
 
-print("Parallel starting data load.")
+
+
+cat("Starting partitioned data load.\n")
+start_part_time <- Sys.time()
+
 
 ## DATA LOADING
 #Load in the dataset
-ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries", 
+part_ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries", 
                    partitioning = c("flightDate"), 
                    unify_schemas = TRUE) 
 
+#Clean, format, and prepare data
+part_data <- part_ds %>%
+  filter(isNonStop == "True") %>% #remove all the not nonstop flights
+  #drop unnecessary columns
+  select(-c("segmentsDepartureTimeEpochSeconds", #repeat info
+            "segmentsArrivalTimeEpochSeconds", #repeat info
+            "segmentsAirlineCode", #repeat info
+            "legId", #unnecessary
+            "travelDuration", #repeat info
+            "fareBasisCode")) %>% #unnecessary
+  collect()
 
-read_data <- function(month) {
+
+
+mid_part_time <- Sys.time()
+cat("Finished partitioned data first clean.", 
+    round(start_part_time-mid_part_time),"\n")
+
+
+
+part_data <- part_data %>%
+  #convert time columns into datetime format
+  mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
+  mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
+  #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
+  filter(as.integer(format(segmentsArrivalTimeRaw, "%m")) %in% c(5)) %>%
+  #transforms number columns from character to numeric
+  transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
+            segmentsDistance=as.numeric(segmentsDistance)) %>%
   
-  data <- ds %>% 
-    #keeps only the rows with flightDate that match the month selected
-    filter(as.integer(substr(data$flightDate, 6, 7) == month)) %>%
-    filter(isNonStop == "True") %>% #remove all the not nonstop flights
-    #drop unnecessary columns
-    select(-c("segmentsDepartureTimeEpochSeconds", #repeat info
-              "segmentsArrivalTimeEpochSeconds", #repeat info
-              "segmentsAirlineCode", #repeat info
-              "legId", #unnecessary
-              "travelDuration", #repeat info
-              "fareBasisCode")) %>% #unnecessary
-    collect()
-    
-  return(data)
-}
-
-#commandArgs(TRUE)[2] - gets the second command-line argument as a numeric value
-#Determines the number of CPU cores for parallel processing
-nc <- as.numeric(commandArgs(TRUE)[2])
-
-rf.parts <- mclapply(ntree, #number of trees to be built on a CPU core
-                     rf, #uses the random forest training function rf
-                     train = train, #chooses the training data
-                     mc.cores = nc) #chooses number of CPU cores to be used
+  drop_na() #drops the nas
 
 
-flight_monthly <- mclapply( c(4,5,6,7,8,9,10,11),
-                            read_data,
-                            ds,
-                            mc.cores = nc)
+end_part_time <- Sys.time()
+cat("Partitioned data total loading and cleaning time ", 
+    round(start_part_time-end_part_time,2),"\n")
 
 
-end_time <- Sys.time()
 
-cat("Time taken:", end_time-start_time)
+
+cat("Starting whole data load.\n")
+start_whole_time <- Sys.time()
+
+
+## DATA LOADING
+#Load in the dataset
+ds <- open_dataset("/projects/bckj/Team3/itineraries_nopart") 
+
+#Clean, format, and prepare data
+data <- ds %>%
+  filter(isNonStop == "True") %>% #remove all the not nonstop flights
+  #drop unnecessary columns
+  select(-c("segmentsDepartureTimeEpochSeconds", #repeat info
+            "segmentsArrivalTimeEpochSeconds", #repeat info
+            "segmentsAirlineCode", #repeat info
+            "legId", #unnecessary
+            "travelDuration", #repeat info
+            "fareBasisCode")) %>% #unnecessary
+  collect()
+
+
+
+mid_whole_time <- Sys.time()
+cat("Finished whole data first clean.", 
+    round(start_whole_time-mid_whole_time),"\n")
+
+
+data <- data %>%
+  #convert time columns into datetime format
+  mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
+  mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
+  #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
+  filter(as.integer(format(segmentsArrivalTimeRaw, "%m")) %in% c(5)) %>%
+  #transforms number columns from character to numeric
+  transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
+            segmentsDistance=as.numeric(segmentsDistance)) %>%
+  
+  drop_na() #drops the nas
+
+
+end_whole_time <- Sys.time()
+
+cat("Whole data total loading and cleaning time ", 
+    round(start_whole_time-end_whole_time,2),"\n")
