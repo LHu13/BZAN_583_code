@@ -5,6 +5,7 @@ set.seed(123) #for reproducibility
 #load all the libraries
 library(arrow)
 library(dplyr)
+library(tidyr)
 
 
 
