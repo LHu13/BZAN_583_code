@@ -36,7 +36,7 @@ part_data <- part_ds %>%
 
 mid_part_time <- Sys.time()
 cat("Finished partitioned data first clean.", 
-    round(start_part_time-mid_part_time),"\n")
+    round(mid_part_time-start_part_time,2),"\n")
 
 
 
@@ -55,7 +55,7 @@ part_data <- part_data %>%
 
 end_part_time <- Sys.time()
 cat("Partitioned data total loading and cleaning time ", 
-    round(start_part_time-end_part_time,2),"\n")
+    round(end_part_time-start_part_time,2),"\n")
 
 
 
@@ -84,7 +84,7 @@ data <- ds %>%
 
 mid_whole_time <- Sys.time()
 cat("Finished whole data first clean.", 
-    round(start_whole_time-mid_whole_time),"\n")
+    round(mid_whole_time-start_whole_time,2),"\n")
 
 
 data <- data %>%
@@ -103,4 +103,4 @@ data <- data %>%
 end_whole_time <- Sys.time()
 
 cat("Whole data total loading and cleaning time ", 
-    round(start_whole_time-end_whole_time,2),"\n")
+    round(end_whole_time-start_whole_time,2),"\n")
