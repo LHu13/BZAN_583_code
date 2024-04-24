@@ -94,5 +94,5 @@ rf_rmse <- RMSE(test$totalFare,pred)
 end_time <- Sys.time()
 
 print("Serial random forest model done.")
-cat("Model RMSE:", rf_rmse, "\n")
+#cat("Model RMSE:", rf_rmse, "\n")
 cat("Time Taken:", round(end_time-start_time,2),"\n")

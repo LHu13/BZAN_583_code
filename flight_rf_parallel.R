@@ -14,9 +14,7 @@ library(parallel)
 
 ## DATA LOADING
 #Load in the dataset
-ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries", 
-                   partitioning = c("flightDate"), 
-                   unify_schemas = TRUE) 
+ds <- open_dataset("/projects/bckj/Team3/itineraries_nopart") 
 
 #Clean, format, and prepare data
 data <- ds %>%
@@ -112,5 +110,5 @@ rf_rmse <- RMSE(test$totalFare,pred)
 end_time <- Sys.time()
 
 cat( nc, " cores parallel random forest model done \n")
-cat("Model RMSE:", rf_rmse, "\n")
+#cat("Model RMSE:", rf_rmse, "\n")
 cat("Time Taken:", round(end_time-start_time,2),"\n")
