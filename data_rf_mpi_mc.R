@@ -1,5 +1,5 @@
 suppressMessages(library(pbdMPI))
-
+suppressMessages(library(memuse))
 suppressMessages(library(arrow))
 suppressMessages(library(dplyr))
 suppressMessages(library(tidyr))
