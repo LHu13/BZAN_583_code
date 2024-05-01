@@ -7,6 +7,7 @@ suppressMessages(library(MERO))
 suppressMessages(library(randomForest))
 suppressMessages(library(parallel))
 
+start_time <- Sys.time()
 
 ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries")
 
@@ -39,7 +40,13 @@ my_data <- my_data %>%
             "segmentsAirlineCode", #repeat info
             "legId", #unnecessary
             "travelDuration", #repeat info
-            "fareBasisCode")) %>% #unnecessary
+            "fareBasisCode",
+            "startingAirport",
+            "destinationAirport",
+            "baseFare", 
+            "segmentsDistance",
+            "searchDate",
+            "elapsedDays")) %>% #unnecessary
   #convert time columns into datetime format
   mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
   mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
@@ -52,7 +59,7 @@ my_data <- my_data %>%
   drop_na() %>% 
   collect()
 
-comm.cat(comm.rank(), "dim", dim(my_data), "\n", all.rank = TRUE)
+#comm.cat(comm.rank(), "dim", dim(my_data), "\n", all.rank = TRUE)
 
 ## allgather() for data.frames (not in pbdMPI ... yet!)
 allgather.data.frame = function(x) {
@@ -66,8 +73,12 @@ data = allgather.data.frame(my_data)
 rm(my_data) # free up memory
 
 ## Check on the result
-comm.cat(comm.rank(), "dim", dim(data), "\n", all.rank = TRUE)
-comm.print(memuse::Sys.procmem()$size, all.rank = TRUE)
+#comm.cat(comm.rank(), "dim", dim(data), "\n", all.rank = TRUE)
+#comm.print(memuse::Sys.procmem()$size, all.rank = TRUE)
+
+end_time <- Sys.time()
+
+cat("Finished cleaning data \n", end_time-start_time)
 
 ## Parallel random forest part
 comm.set.seed(seed = 7654321, diff = FALSE)      #<<
@@ -77,6 +88,10 @@ n_test = floor(0.2 * n)
 i_test = sample.int(n, n_test)
 train = data[-i_test, ][1:1000, ]    # limit to 1k obs for debugging
 my_test = data[i_test, ][comm.chunk(n_test, form = "vector"), ]    #<<
+
+end_time <- Sys.time()
+
+cat("Finished splitting data \n", end_time-start_time)
 
 ntree = 64 # start small for debug
 my_ntree = comm.chunk(ntree, form = "vector", rng = TRUE, seed = 12345)        #<<
@@ -93,6 +108,10 @@ my_rf = do.call(combine, my_rf)            #<<
 rf_all = allgather(my_rf)                  #<<
 rf_all = do.call(combine, rf_all)          #<<
 
+end_time <- Sys.time()
+
+cat("Finished training model \n", end_time-start_time)
+
 my_pred = as.vector(predict(rf_all, my_test))
 
 # correct = allreduce(sum(my_pred == my_test$<your-true-category>))  # classification
@@ -101,3 +120,7 @@ sse = allreduce(sum((my_pred - my_test$totalFare)^2)) # regression
 comm.cat("RMSE:", sqrt(rmse/n_test), "\n")
 
 finalize()
+
+end_time <- Sys.time()
+
+cat("Finished everything \n", end_time-start_time)
