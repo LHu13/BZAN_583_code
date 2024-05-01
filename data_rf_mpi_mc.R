@@ -44,7 +44,6 @@ my_data <- my_data %>%
             "startingAirport",
             "destinationAirport",
             "baseFare", 
-            "segmentsDistance",
             "searchDate",
             "elapsedDays")) %>% #unnecessary
   #convert time columns into datetime format
