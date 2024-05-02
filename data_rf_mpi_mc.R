@@ -79,15 +79,14 @@ comm.cat(comm.rank(), # comm.rank() : gets the MPI rank/identifier for each proc
 allgather.data.frame = function(df) {
   
   cnames = names(df) # gets the column names
-  
-  df = lapply(df, #applies the function over all of the 
-# do.call : constructs and executes a function call from a name or a function and a list of arguments to be passed to it
-             function(df) do.call(c, 
-# gather() : combines the separated data into a single unit; gather columns into key-value pairs
-# allgather() : same as gather() but for more and mixes it so the results have all the data in multiple portions
-                                 allgather(df))) 
-  
-  df = as.data.frame(df) # turns output into a dataframe
+  # gather() : combines the separated data into a single unit; gather columns into key-value pairs
+  # allgather() : same as gather() but for more and mixes it so the results have all the data in multiple portions
+  # do.call : constructs and executes a function call from a name or a function and a list of arguments to be passed to it
+  # Gather all elements of the column across all processes and concatenate them into a single vector
+  df = lapply(df, 
+             function(x) do.call(c, # splits the dataframe into columns that are gathered
+                                 allgather(x))) 
+  df = as.data.frame(df) # turns output back into a dataframe
   names(df) = cnames # renames the columns to be correct
   df #returns the gathered dataframes
 }
@@ -132,12 +131,12 @@ my_test = data[i_test, ][comm.chunk(n_test, form = "vector"), ]
 rm(data)  # no longer needed, free up memory
 
 ## start with nodesize at 1% of the data and small ntree
-ntree = 64
+ntree = 500
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
-rF = function(nt, tr) 
+rF = function(tree_count, train_set) 
   randomForest(totalFare ~ ., 
-               data = tr, 
-               ntree = nt, 
+               data = train_set, 
+               ntree = tree_count, 
                nodesize = 10000, 
                norm.votes = FALSE) 
 
@@ -176,6 +175,10 @@ comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 end_time <- Sys.time()
 
 cat("\n Total Time: ", round(end_time-start_time,2), " seconds \n")
+
+results <- data.frame(my_pred,my_test$your_target)
+cat(head(results))
 cat("Code finished running. \n")
+
 
 finalize()
