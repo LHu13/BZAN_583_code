@@ -11,6 +11,7 @@ suppressMessages(library(parallel))
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
 
+start_time <- Sys.time()
 
 ### DATA LOADING ###
 # Load in data from server.
@@ -90,6 +91,17 @@ rm(my_data) # free up memory
 comm.cat(comm.rank(), "dim", dim(data), "\n", all.rank = TRUE)
 comm.print(memuse::Sys.procmem()$size, all.rank = TRUE)
 
+
+
+
+end_time <- Sys.time()
+
+cat("Data Preparation Time: ", round(end_time-start_time,2))
+
+
+
+
+
 ## Parallel random forest part
 i_samp = sample.int(nrow(data), 100000)
 data = data[i_samp, ]    # limit to 100k obs for debugging
@@ -122,5 +134,12 @@ comm.cat("RMSE:", rmse, "\n")
 mean = allreduce(sum(my_test$totalFare)) / n_test
 comm.cat("Mean:", mean, "\n")
 comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
+
+
+
+end_time <- Sys.time()
+
+cat("Total Time: ", round(end_time-start_time,2))
+cat("Code finished running.")
 
 finalize()
