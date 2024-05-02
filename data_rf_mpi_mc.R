@@ -25,12 +25,13 @@ get_hive_var = function(ds, var) # select dataset and partitioning variable
 partitions = get_hive_var(ds, "flightDate")  
 
 # Distributes the partitions evenly across different processors
-my_partitions = partitions[comm.chunk(length(partitions), #comm.chunk splits the data so each processor works on a different piece of dataset
+# comm.chunk splits the data so each processor works on a different piece of dataset
+my_partitions = partitions[comm.chunk(length(partitions),
                                       form = "vector")]
 
 # Print out the MPI rank (i.e. identifier for each processor)
 #and the partitions assigned to each rank
-comm.cat("rank", 
+comm.cat("MPI Rank (ID for each processor)", 
          comm.rank(), 
          "partitions", 
          my_partitions, # selects the distributed partitions
@@ -66,6 +67,7 @@ my_data <- my_data %>%
   drop_na() %>%#drops the nas
   collect()
 
+# Print dimensions of the dataframe
 comm.cat(comm.rank(), 
          "dim", 
          dim(my_data), "\n", # dim(): outputs dataframe dimensions
@@ -73,30 +75,44 @@ comm.cat(comm.rank(),
 
 
 
-## allgather() for data.frames (not in pbdMPI ... yet!)
-allgather.data.frame = function(x) {
-  cnames = names(x) # gets the column names
-  x = lapply(x, 
-             function(x) do.call(c, 
-                                 allgather(x))) # function that 
-  x = as.data.frame(x)
-  names(x) = cnames
-  x
+# Creates a function that gathers all 
+allgather.data.frame = function(df) {
+  
+  cnames = names(df) # gets the column names
+  
+  df = lapply(df, #applies the function over all of the 
+# do.call : constructs and executes a function call from a name or a function and a list of arguments to be passed to it
+             function(df) do.call(c, 
+# gather() : combines the separated data into a single unit; gather columns into key-value pairs
+# allgather() : same as gather() but for more and mixes it so the results have all the data in multiple portions
+                                 allgather(df))) 
+  
+  df = as.data.frame(df) # turns output into a dataframe
+  names(df) = cnames # renames the columns to be correct
+  df #returns the gathered dataframes
 }
 
+
+# Gathers all the data into one dataset
 data = allgather.data.frame(my_data)
-rm(my_data) # free up memory
+
+rm(my_data) # removes my_data free up memory
 
 ## Check on the result
-comm.cat(comm.rank(), "dim", dim(data), "\n", all.rank = TRUE)
-comm.print(memuse::Sys.procmem()$size, all.rank = TRUE)
+comm.cat(comm.rank(), 
+         "Data Dimensions (row count, column count) : ", 
+         dim(data), "\n", # dim(): outputs dataframe dimensions
+         all.rank = TRUE) # ensures the output is generated from all processors
+
+
+comm.print("Total Memory Usage: ",memuse::Sys.procmem()$size, all.rank = TRUE)
 
 
 
 
 end_time <- Sys.time()
 
-cat("Data Preparation Time: ", round(end_time-start_time,2))
+cat("\n Data Preparation Time: ", round(end_time-start_time,2), " seconds \n")
 
 
 
@@ -124,6 +140,13 @@ rf = do.call(combine, rf)  # reusing rf name to release memory after operation
 rf = allgather(rf) 
 rf = do.call(combine, rf)
 
+
+
+
+
+
+
+
 my_pred = as.vector(predict(rf, my_test))
 
 # correct = allreduce(sum(my_pred == my_test$your_true_category))  # classification
@@ -139,7 +162,7 @@ comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 
 end_time <- Sys.time()
 
-cat("Total Time: ", round(end_time-start_time,2))
+cat("Total Time: ", round(end_time-start_time,2), " seconds \n")
 cat("Code finished running.")
 
 finalize()
