@@ -81,14 +81,14 @@ comm.print(memuse::Sys.procmem()$size, all.rank = TRUE)
 
 end_time <- Sys.time()
 
-cat("Data Preparation Time: ", round(end_time-start_time,2),"\n")
+cat("Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 
 
 
 
 ## Parallel random forest part
-i_samp = sample.int(nrow(data), 1000000)
+i_samp = sample.int(nrow(data), 100000)
 data = data[i_samp, ]    # limit to 100k obs for debugging
 n = nrow(data)
 n_test = floor(0.2 * n)
@@ -100,7 +100,7 @@ rm(data)  # no longer needed, free up memory
 ntree = 500
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
 rF = function(nt, tr) 
-  randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = 10000, norm.votes = FALSE) 
+  randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = 1000, norm.votes = FALSE) 
 nc = as.numeric(commandArgs(TRUE)[2]) 
 rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
 rf = do.call(combine, rf)  # reusing rf name to release memory after operation
