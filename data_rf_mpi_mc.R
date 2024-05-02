@@ -10,9 +10,12 @@ suppressMessages(library(parallel))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
+
+
 ### DATA LOADING ###
 # Load in data from server.
 ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries")
+
 # Create function to extract partition information from the file paths in the dataset
 get_hive_var = function(ds, var) # select dataset and partitioning variable
   sub("/.*$", "", sub(paste0("^.*", var, "="), "", ds$files)) # regex to manipulate strings
@@ -20,8 +23,18 @@ get_hive_var = function(ds, var) # select dataset and partitioning variable
 # Extracts the partition variable values from the dataset
 partitions = get_hive_var(ds, "flightDate")  
 
-my_partitions = partitions[comm.chunk(length(partitions), form = "vector")]
-comm.cat("rank", comm.rank(), "partitions", my_partitions, "\n", all.rank = TRUE)
+# Distributes the partitions evenly across different processors
+my_partitions = partitions[comm.chunk(length(partitions), #comm.chunk splits the data so each processor works on a different piece of dataset
+                                      form = "vector")]
+
+# Print out the MPI rank (i.e. identifier for each processor)
+#and the partitions assigned to each rank
+comm.cat("rank", 
+         comm.rank(), 
+         "partitions", 
+         my_partitions, # selects the distributed partitions
+         "\n", 
+         all.rank = TRUE) # ensures the output is generated from all processors
 
 # Read only the data for the partitions in my_partitions
 my_data <- ds %>% 
@@ -35,7 +48,6 @@ my_data <- ds %>%
             "travelDuration", #repeat info
             "fareBasisCode")) %>% #unnecessary
   collect()
-
 
 # Filter, select, mutate, and reduce the data (do separately for debug)
 my_data <- my_data %>%
@@ -51,7 +63,10 @@ my_data <- my_data %>%
   drop_na() %>%#drops the nas
   collect()
 
-comm.cat(comm.rank(), "dim", dim(my_data), "\n", all.rank = TRUE)
+comm.cat(comm.rank(), 
+         "dim", 
+         dim(my_data), "\n", # dim(): outputs dataframe dimensions
+         all.rank = TRUE) # ensures the output is generated from all processors
 
 ## allgather() for data.frames (not in pbdMPI ... yet!)
 allgather.data.frame = function(x) {
@@ -91,7 +106,7 @@ rf = do.call(combine, rf)  # reusing rf name to release memory after operation
 rf = allgather(rf) 
 rf = do.call(combine, rf)
 
-my_pred = as.vector(predict(rf_all, my_test))
+my_pred = as.vector(predict(rf, my_test))
 
 # correct = allreduce(sum(my_pred == my_test$your_true_category))  # classification
 sse = allreduce(sum((my_pred - my_test$your_target)^2)) # regression
