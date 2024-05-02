@@ -117,7 +117,7 @@ mean = allreduce(sum(my_test$totalFare)) / n_test
 comm.cat("Mean:", mean, "\n")
 comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 
-results <- data.frame(my_test$your_target, my_pred)
+
 print("Actual")
 print(my_test$your_target[1:100])
 print("Predicted")
