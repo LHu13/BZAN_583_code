@@ -36,6 +36,8 @@ comm.cat("rank",
          "\n", 
          all.rank = TRUE) # ensures the output is generated from all processors
 
+
+### DATA CLEANING ###
 # Read only the data for the partitions in my_partitions
 my_data <- ds %>% 
   filter(flightDate %in% my_partitions) %>%
@@ -68,10 +70,14 @@ comm.cat(comm.rank(),
          dim(my_data), "\n", # dim(): outputs dataframe dimensions
          all.rank = TRUE) # ensures the output is generated from all processors
 
+
+
 ## allgather() for data.frames (not in pbdMPI ... yet!)
 allgather.data.frame = function(x) {
-  cnames = names(x)
-  x = lapply(x, function(x) do.call(c, allgather(x)))
+  cnames = names(x) # gets the column names
+  x = lapply(x, 
+             function(x) do.call(c, 
+                                 allgather(x))) # function that 
   x = as.data.frame(x)
   names(x) = cnames
   x
@@ -96,7 +102,7 @@ my_test = data[i_test, ][comm.chunk(n_test, form = "vector"), ]
 rm(data)  # no longer needed, free up memory
 
 ## start with nodesize at 1% of the data and small ntree
-ntree = 32
+ntree = 64
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
 rF = function(nt, tr) 
   randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = 1000, norm.votes = FALSE) 
