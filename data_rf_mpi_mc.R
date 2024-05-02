@@ -133,21 +133,12 @@ rm(data)  # no longer needed, free up memory
 ## start with nodesize at 1% of the data and small ntree
 ntree = 500
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
-rF = function(tree_count, train_set) 
-  randomForest(totalFare ~ ., 
-               data = train_set, 
-               ntree = tree_count, 
-               nodesize = 10000, 
-               norm.votes = FALSE) 
-
+rF = function(nt, tr) 
+  randomForest(your_target ~ ., data = tr, ntree = nt, nodesize = 10000, norm.votes = FALSE) 
 nc = as.numeric(commandArgs(TRUE)[2]) 
-
 rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
-
 rf = do.call(combine, rf)  # reusing rf name to release memory after operation
-
 rf = allgather(rf) 
-
 rf = do.call(combine, rf)
 
 
