@@ -6,8 +6,10 @@
 suppressMessages(library(pbdMPI))
 suppressMessages(library(arrow))
 suppressMessages(library(dplyr))
+suppressMessages(library(tidyr))
 suppressMessages(library(randomForest))
 suppressMessages(library(parallel))
+
 
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
