@@ -109,7 +109,7 @@ rf = allgather(rf)
 rf = do.call(combine, rf)
 my_pred = as.vector(predict(rf, my_test))
 # correct = allreduce(sum(my_pred == my_test$your_true_category))  # classification
-sse = allreduce(sum((my_pred - my_test$your_target)^2)) # regression
+sse = allreduce(sum((my_pred - my_test$totalFare)^2)) # regression
 rmse = sqrt(sse/n_test)
 # comm.cat("Proportion Correct:", correct/(n_test), "\n")
 comm.cat("RMSE:", rmse, "\n")
