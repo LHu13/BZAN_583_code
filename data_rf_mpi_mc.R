@@ -118,8 +118,10 @@ comm.cat("Mean:", mean, "\n")
 comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 
 results <- data.frame(my_test$your_target, my_pred)
-print(my_test$your_target[c(1:100)])
-print(my_pred[c(1:100)])
+print("Actual")
+print(my_test$your_target[1:100])
+print("Predicted")
+print(my_pred[1:100])
 
 
 end_time <- Sys.time()
