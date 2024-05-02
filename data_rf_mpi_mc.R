@@ -32,7 +32,7 @@ my_partitions = partitions[comm.chunk(length(partitions),
 # Print out the MPI rank (i.e. identifier for each processor)
 #and the partitions assigned to each rank
 comm.cat("MPI Rank (ID for each processor)", 
-         comm.rank(), 
+         comm.rank(), # comm.rank() : gets the MPI rank/identifier for each processor
          "partitions", 
          my_partitions, # selects the distributed partitions
          "\n", 
@@ -68,7 +68,7 @@ my_data <- my_data %>%
   collect()
 
 # Print dimensions of the dataframe
-comm.cat(comm.rank(), 
+comm.cat(comm.rank(), # comm.rank() : gets the MPI rank/identifier for each processor
          "dim", 
          dim(my_data), "\n", # dim(): outputs dataframe dimensions
          all.rank = TRUE) # ensures the output is generated from all processors
@@ -99,13 +99,15 @@ data = allgather.data.frame(my_data)
 rm(my_data) # removes my_data free up memory
 
 ## Check on the result
-comm.cat(comm.rank(), 
+comm.cat(comm.rank(), # comm.rank() : gets the MPI rank/identifier for each processor
          "Data Dimensions (row count, column count) : ", 
          dim(data), "\n", # dim(): outputs dataframe dimensions
          all.rank = TRUE) # ensures the output is generated from all processors
 
 
-comm.print("Total Memory Usage: ",memuse::Sys.procmem()$size, all.rank = TRUE)
+comm.print("Total Memory Usage: ",
+           memuse::Sys.procmem()$size, #Sys.procmem() :  total memory usage of the current R process
+           all.rank = TRUE)
 
 
 
@@ -118,8 +120,8 @@ cat("\n Data Preparation Time: ", round(end_time-start_time,2), " seconds \n")
 
 
 
-## Parallel random forest part
-i_samp = sample.int(nrow(data), 100000)
+### TRAIN PARALLEL RANDOM FOREST ###
+i_samp = sample.int(nrow(data), 1000000)
 data = data[i_samp, ]    # limit to 100k obs for debugging
 
 n = nrow(data)
@@ -133,11 +135,20 @@ rm(data)  # no longer needed, free up memory
 ntree = 64
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
 rF = function(nt, tr) 
-  randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = 1000, norm.votes = FALSE) 
+  randomForest(totalFare ~ ., 
+               data = tr, 
+               ntree = nt, 
+               nodesize = 10000, 
+               norm.votes = FALSE) 
+
 nc = as.numeric(commandArgs(TRUE)[2]) 
+
 rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
+
 rf = do.call(combine, rf)  # reusing rf name to release memory after operation
+
 rf = allgather(rf) 
+
 rf = do.call(combine, rf)
 
 
@@ -154,7 +165,9 @@ sse = allreduce(sum((my_pred - my_test$your_target)^2)) # regression
 rmse = sqrt(sse/n_test)
 # comm.cat("Proportion Correct:", correct/(n_test), "\n")
 comm.cat("RMSE:", rmse, "\n")
+
 mean = allreduce(sum(my_test$totalFare)) / n_test
+
 comm.cat("Mean:", mean, "\n")
 comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 
@@ -162,7 +175,7 @@ comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 
 end_time <- Sys.time()
 
-cat("Total Time: ", round(end_time-start_time,2), " seconds \n")
-cat("Code finished running.")
+cat("\n Total Time: ", round(end_time-start_time,2), " seconds \n")
+cat("Code finished running. \n")
 
 finalize()
