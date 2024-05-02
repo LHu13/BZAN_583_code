@@ -112,14 +112,16 @@ my_pred = as.vector(predict(rf, my_test))
 sse = allreduce(sum((my_pred - my_test$totalFare)^2)) # regression
 rmse = sqrt(sse/n_test)
 # comm.cat("Proportion Correct:", correct/(n_test), "\n")
+print("RMSE IS HERE BY THE WAY LOOK HERE")
 comm.cat("RMSE:", rmse, "\n")
+
 mean = allreduce(sum(my_test$totalFare)) / n_test
 comm.cat("Mean:", mean, "\n")
 comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 
 
 print("Actual")
-print(my_test$your_target[1:100])
+print(my_test$totalFare[1:100])
 print("Predicted")
 print(my_pred[1:100])
 
