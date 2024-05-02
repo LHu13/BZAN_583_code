@@ -1,8 +1,5 @@
-## All of the following need to be replaced with your data:
-## your_parquet_data, your_target, your_filters, your_var_selections,
-## your_true_category, your_partition_var
-##
 
+# Load relevant libraries and suppress loading messages.
 suppressMessages(library(pbdMPI))
 suppressMessages(library(arrow))
 suppressMessages(library(dplyr))
@@ -10,13 +7,17 @@ suppressMessages(library(tidyr))
 suppressMessages(library(randomForest))
 suppressMessages(library(parallel))
 
-
+# Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
-
+### DATA LOADING ###
+# Load in data from server.
 ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries")
-get_hive_var = function(ds, var) 
-  sub("/.*$", "", sub(paste0("^.*", var, "="), "", ds$files))
+# Create function to extract partition information from the file paths in the dataset
+get_hive_var = function(ds, var) # select dataset and partitioning variable
+  sub("/.*$", "", sub(paste0("^.*", var, "="), "", ds$files)) # regex to manipulate strings
+
+# Extracts the partition variable values from the dataset
 partitions = get_hive_var(ds, "flightDate")  
 
 my_partitions = partitions[comm.chunk(length(partitions), form = "vector")]

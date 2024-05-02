@@ -14,4 +14,5 @@ pwd
 module load r
 module list
 
-time mpirun -np 8 Rscript data_rf_mpi_mc.R
+
+time mpirun -np 8 Rscript data_rf_mpi_mc.R --args 16
