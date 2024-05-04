@@ -142,14 +142,22 @@ rm(data)  # no longer needed, free up memory
 
 
 ################################ PARALLEL RANDOM FOREST ###################################
+
 ntree = 64
+
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
+
 rF = function(nt, tr) 
   randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = SAMPLE_SIZE/100, norm.votes = FALSE) 
+
 nc = as.numeric(commandArgs(TRUE)[2]) 
+
 rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
+
 rf = do.call(combine, rf)  # reusing rf name to release memory after operation
+
 rf = allgather(rf) 
+
 rf = do.call(combine, rf)
 
 # Predict on test set
