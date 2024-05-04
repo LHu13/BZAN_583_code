@@ -9,6 +9,8 @@ suppressMessages(library(lubridate))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
+SAMPLE_SIZE <- 100000
+
 # TIME IT
 start_time <- Sys.time()
 
@@ -116,7 +118,7 @@ rm(my_data) # remove old data to free up space
 
 # TIME IT
 end_time <- Sys.time()
-cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
+cat("Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 
 
@@ -126,7 +128,7 @@ cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 ################################ TRAIN/TEST SPLIT ###################################
 # Sample only 100,000 to start with
-i_samp = sample.int(nrow(data), 100000) #random sample of integers
+i_samp = sample.int(nrow(data), SAMPLE_SIZE) #random sample of integers
 data = data[i_samp, ] #keep only the random selected data
 
 n = nrow(data)
@@ -141,7 +143,7 @@ rm(data)  # no longer needed, free up memory
 ntree = 64
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
 rF = function(nt, tr) 
-  randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = 1000, norm.votes = FALSE) 
+  randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = SAMPLE_SIZE/100, norm.votes = FALSE) 
 nc = as.numeric(commandArgs(TRUE)[2]) 
 rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
 rf = do.call(combine, rf)  # reusing rf name to release memory after operation
@@ -177,6 +179,6 @@ comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 # TIME IT
 end_time <- Sys.time()
 cat("Total Time: ", round(end_time-start_time,2),"\n")
-cat("Code finished running. \n")
+cat("Parallel Random Forest Code finished running. \n")
 
 finalize()

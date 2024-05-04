@@ -8,6 +8,8 @@ suppressMessages(library(lubridate))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
+SAMPLE_SIZE <- 100000
+
 # TIME IT
 start_time <- Sys.time()
 
@@ -115,7 +117,7 @@ rm(my_data) # remove old data to free up space
 
 # TIME IT
 end_time <- Sys.time()
-cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
+cat("Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 
 
@@ -125,7 +127,7 @@ cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 
 # You can also use summary to check all variables at once
-summary(my_data)
+summary(data)
 
 
 
@@ -138,7 +140,7 @@ summary(my_data)
 
 ################################ TRAIN/TEST SPLIT ###################################
 # Sample only 100,000 to start with
-i_samp = sample.int(nrow(data), 100000) #random sample of integers
+i_samp = sample.int(nrow(data), SAMPLE_SIZE) #random sample of integers
 data = data[i_samp, ] #keep only the random selected data
 
 n = nrow(data)
