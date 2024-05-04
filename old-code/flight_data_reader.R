@@ -9,8 +9,10 @@ suppressMessages(library(lubridate))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
+SAMPLE_SIZE <- 10000000
+
 # TIME IT
-start_time <- Sys.time()
+#start_time <- Sys.time()
 
 
 ################################ DATA LOADING ###################################
@@ -25,12 +27,12 @@ partitions = get_hive_var(ds, "flightDate")
 my_partitions = partitions[comm.chunk(length(partitions), #comm.chunk splits the data so each processor works on a different piece of dataset
                                       form = "vector")]
 # Print out the MPI rank (i.e. identifier for each processor) and the partitions assigned to each rank
-comm.cat("rank", 
-         comm.rank(), 
-         "partitions", 
-         my_partitions, # selects the distributed partitions
-         "\n", 
-         all.rank = TRUE) # ensures the output is generated from all processors
+#comm.cat("rank", 
+#         comm.rank(), 
+#         "partitions", 
+#         my_partitions, # selects the distributed partitions
+#         "\n", 
+#         all.rank = TRUE) # ensures the output is generated from all processors
 
 
 ################################ DATA CLEANING ###################################
@@ -59,28 +61,32 @@ my_data <- my_data %>%
   #convert time columns into datetime format
   mutate(segmentsArrivalTimeRaw = ymd_hms(segmentsArrivalTimeRaw))  %>%
   mutate(segmentsDepartureTimeRaw= ymd_hms(segmentsDepartureTimeRaw))  %>%
+  #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
+  filter(month(segmentsDepartureTimeRaw) %in% c(6,7,8)) %>%
   #keep only the hours, minutes, date
-  mutate(minuteArrivalTimeRaw = minute(segmentsArrivalTimeRaw))  %>%
-  mutate(minuteDepartureTimeRaw= minute(segmentsDepartureTimeRaw)) %>%
-  mutate(hourArrivalTimeRaw = hour(segmentsArrivalTimeRaw))  %>%
-  mutate(hourDepartureTimeRaw= hour(segmentsDepartureTimeRaw)) %>%
-  mutate(dayArrivalTimeRaw = day(segmentsArrivalTimeRaw))  %>%
-  mutate(dayDepartureTimeRaw= day(segmentsDepartureTimeRaw)) %>%
-  mutate(monthArrivalTimeRaw = month(segmentsArrivalTimeRaw))  %>%
-  mutate(monthDepartureTimeRaw= month(segmentsDepartureTimeRaw)) %>%
+  #  mutate(minuteArrivalTimeRaw = minute(segmentsArrivalTimeRaw))  %>%
+  #  mutate(minuteDepartureTimeRaw= minute(segmentsDepartureTimeRaw)) %>%
+  #  mutate(hourArrivalTimeRaw = hour(segmentsArrivalTimeRaw))  %>%
+  #  mutate(hourDepartureTimeRaw= hour(segmentsDepartureTimeRaw)) %>%
+  #  mutate(dayArrivalTimeRaw = day(segmentsArrivalTimeRaw))  %>%
+  #  mutate(dayDepartureTimeRaw= day(segmentsDepartureTimeRaw)) %>%
+  #  mutate(monthArrivalTimeRaw = month(segmentsArrivalTimeRaw))  %>%
+  #  mutate(monthDepartureTimeRaw= month(segmentsDepartureTimeRaw)) %>%
+  mutate(weekdayArrivalTimeRaw = factor(wday(segmentsArrivalTimeRaw)))  %>%
+  mutate(weekdayDepartureTimeRaw= factor(wday(segmentsDepartureTimeRaw))) %>%
   #transforms number columns from character to numeric
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
   #transforms the categorical data into factors
-  mutate(startingAirport = factor(startingAirport)) %>%
-  mutate(destinationAirport = factor(destinationAirport)) %>%
-  mutate(isBasicEconomy = factor(isBasicEconomy)) %>%
-  mutate(isRefundable = factor(isRefundable)) %>%
-  mutate(segmentsAirlineName = factor(segmentsAirlineName)) %>%
-  mutate(segmentsEquipmentDescription = factor(segmentsEquipmentDescription)) %>%
-  mutate(segmentsCabinCode = factor(segmentsCabinCode)) %>%
-  select(-c("segmentsArrivalTimeRaw",
-            "segmentsDepartureTimeRaw"))
+  #  mutate(startingAirport = factor(startingAirport)) %>%
+  #  mutate(destinationAirport = factor(destinationAirport)) %>%
+  #  mutate(isBasicEconomy = factor(isBasicEconomy)) %>%
+  #  mutate(isRefundable = factor(isRefundable)) %>%
+  #  mutate(segmentsAirlineName = factor(segmentsAirlineName)) %>%
+  #  mutate(segmentsEquipmentDescription = factor(segmentsEquipmentDescription)) %>%
+  #  mutate(segmentsCabinCode = factor(segmentsCabinCode)) %>%
+  #  select(-c("segmentsArrivalTimeRaw",
+  #            "segmentsDepartureTimeRaw")) %>%
   drop_na() %>%#drops the nas
   collect()
 
@@ -113,13 +119,8 @@ rm(my_data) # remove old data to free up space
 #comm.print(memuse::Sys.procmem()$size, all.rank = TRUE)
 
 # TIME IT
-end_time <- Sys.time()
-cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
-
-
-
-
-
+#end_time <- Sys.time()
+#cat("Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 
 
