@@ -3,7 +3,7 @@
 #SBATCH --account=bckj-delta-cpu
 #SBATCH --partition=cpu
 #SBATCH --mem=256g
-#SBATCH --nodes=4
+#SBATCH --nodes=2
 #SBATCH --cpus-per-task=16
 #SBATCH --tasks-per-node=8
 #SBATCH --time 23:00:00
