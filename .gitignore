@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+<<<<<<< HEAD
+=======
+*.html
+*.Rproj
+>>>>>>> 0a462b019888ad9b9c4e943386451b2a7fb509f2
