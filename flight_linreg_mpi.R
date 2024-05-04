@@ -8,7 +8,7 @@ suppressMessages(library(lubridate))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
-SAMPLE_SIZE <- 100000
+SAMPLE_SIZE <- 1000000
 
 # TIME IT
 start_time <- Sys.time()
@@ -152,7 +152,7 @@ rm(data)  # no longer needed, free up memory
 lm_model <- lm(totalFare ~ ., 
                data = train)
 
-my_pred <- as.vector(predict(lm_model, test))
+my_pred <- as.vector(predict(lm_model, my_test))
 
 
 

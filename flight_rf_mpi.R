@@ -9,7 +9,7 @@ suppressMessages(library(lubridate))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
-SAMPLE_SIZE <- 100000
+SAMPLE_SIZE <- 1000000
 
 # TIME IT
 start_time <- Sys.time()
@@ -27,12 +27,12 @@ partitions = get_hive_var(ds, "flightDate")
 my_partitions = partitions[comm.chunk(length(partitions), #comm.chunk splits the data so each processor works on a different piece of dataset
                                       form = "vector")]
 # Print out the MPI rank (i.e. identifier for each processor) and the partitions assigned to each rank
-comm.cat("rank", 
-         comm.rank(), 
-         "partitions", 
-         my_partitions, # selects the distributed partitions
-         "\n", 
-         all.rank = TRUE) # ensures the output is generated from all processors
+#comm.cat("rank", 
+#         comm.rank(), 
+#         "partitions", 
+#         my_partitions, # selects the distributed partitions
+#         "\n", 
+#         all.rank = TRUE) # ensures the output is generated from all processors
 
 
 ################################ DATA CLEANING ###################################
@@ -140,7 +140,7 @@ rm(data)  # no longer needed, free up memory
 
 
 ################################ PARALLEL RANDOM FOREST ###################################
-ntree = 64
+ntree = 100
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
 rF = function(nt, tr) 
   randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = SAMPLE_SIZE/100, norm.votes = FALSE) 
