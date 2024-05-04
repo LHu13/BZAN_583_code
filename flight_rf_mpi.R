@@ -142,7 +142,7 @@ rm(data)  # no longer needed, free up memory
 
 
 ################################ PARALLEL RANDOM FOREST ###################################
-ntree = 100
+ntree = 84
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
 rF = function(nt, tr) 
   randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = SAMPLE_SIZE/100, norm.votes = FALSE) 
