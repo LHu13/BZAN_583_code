@@ -12,7 +12,7 @@ comm.set.seed(seed = 7654321, diff = FALSE)
 SAMPLE_SIZE <- 10000000
 
 # TIME IT
-start_time <- Sys.time()
+#start_time <- Sys.time()
 
 
 ################################ DATA LOADING ###################################
@@ -119,8 +119,8 @@ rm(my_data) # remove old data to free up space
 #comm.print(memuse::Sys.procmem()$size, all.rank = TRUE)
 
 # TIME IT
-end_time <- Sys.time()
-cat("Data Preparation Time: ", round(end_time-start_time,2), "\n")
+#end_time <- Sys.time()
+#cat("Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 
 
@@ -179,8 +179,8 @@ comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 #print(my_pred[1:100])
 
 # TIME IT
-end_time <- Sys.time()
-cat("Total Time: ", round(end_time-start_time,2),"\n")
+#end_time <- Sys.time()
+#cat("Total Time: ", round(end_time-start_time,2),"\n")
 cat("Parallel Random Forest Code finished running. \n")
 
 finalize()
