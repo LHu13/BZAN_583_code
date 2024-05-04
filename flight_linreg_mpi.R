@@ -61,29 +61,31 @@ my_data <- my_data %>%
   mutate(segmentsArrivalTimeRaw = ymd_hms(segmentsArrivalTimeRaw))  %>%
   mutate(segmentsDepartureTimeRaw= ymd_hms(segmentsDepartureTimeRaw))  %>%
   #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
-  filter(month(segmentsDepartureTimeRaw) == 5) %>%
+  #filter(month(segmentsDepartureTimeRaw) == 5) %>%
   #keep only the hours, minutes, date
-    mutate(minuteArrivalTimeRaw = minute(segmentsArrivalTimeRaw))  %>%
-    mutate(minuteDepartureTimeRaw= minute(segmentsDepartureTimeRaw)) %>%
-    mutate(hourArrivalTimeRaw = hour(segmentsArrivalTimeRaw))  %>%
-    mutate(hourDepartureTimeRaw= hour(segmentsDepartureTimeRaw)) %>%
-    mutate(dayArrivalTimeRaw = day(segmentsArrivalTimeRaw))  %>%
-    mutate(dayDepartureTimeRaw= day(segmentsDepartureTimeRaw)) %>%
-    mutate(monthArrivalTimeRaw = month(segmentsArrivalTimeRaw))  %>%
-    mutate(monthDepartureTimeRaw= month(segmentsDepartureTimeRaw)) %>%
+  mutate(minuteArrivalTimeRaw = minute(segmentsArrivalTimeRaw))  %>%
+  mutate(minuteDepartureTimeRaw= minute(segmentsDepartureTimeRaw)) %>%
+  mutate(hourArrivalTimeRaw = hour(segmentsArrivalTimeRaw))  %>%
+  mutate(hourDepartureTimeRaw= hour(segmentsDepartureTimeRaw)) %>%
+  mutate(dayArrivalTimeRaw = day(segmentsArrivalTimeRaw))  %>%
+  mutate(dayDepartureTimeRaw= day(segmentsDepartureTimeRaw)) %>%
+  mutate(monthArrivalTimeRaw = month(segmentsArrivalTimeRaw))  %>%
+  mutate(monthDepartureTimeRaw= month(segmentsDepartureTimeRaw)) %>%
+  mutate(weekdayArrivalTimeRaw = factor(wday(segmentsArrivalTimeRaw)))  %>%
+  mutate(weekdayDepartureTimeRaw= factor(wday(segmentsDepartureTimeRaw))) %>%
   #transforms number columns from character to numeric
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
   #transforms the categorical data into factors
-    mutate(startingAirport = factor(startingAirport)) %>%
-    mutate(destinationAirport = factor(destinationAirport)) %>%
-    mutate(isBasicEconomy = factor(isBasicEconomy)) %>%
-    mutate(isRefundable = factor(isRefundable)) %>%
-    mutate(segmentsAirlineName = factor(segmentsAirlineName)) %>%
-    mutate(segmentsEquipmentDescription = factor(segmentsEquipmentDescription)) %>%
-    mutate(segmentsCabinCode = factor(segmentsCabinCode)) %>%
-    select(-c("segmentsArrivalTimeRaw",
-              "segmentsDepartureTimeRaw")) %>%
+  mutate(startingAirport = factor(startingAirport)) %>%
+  mutate(destinationAirport = factor(destinationAirport)) %>%
+  mutate(isBasicEconomy = factor(isBasicEconomy)) %>%
+  mutate(isRefundable = factor(isRefundable)) %>%
+  mutate(segmentsAirlineName = factor(segmentsAirlineName)) %>%
+  mutate(segmentsEquipmentDescription = factor(segmentsEquipmentDescription)) %>%
+  mutate(segmentsCabinCode = factor(segmentsCabinCode)) %>%
+  select(-c("segmentsArrivalTimeRaw",
+            "segmentsDepartureTimeRaw")) %>%
   drop_na() %>%#drops the nas
   collect()
 
