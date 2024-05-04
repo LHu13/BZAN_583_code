@@ -4,8 +4,8 @@
 #SBATCH --partition=cpu
 #SBATCH --mem=240g
 #SBATCH --nodes=2
-#SBATCH --cpus-per-task=4
-#SBATCH --tasks-per-node=2
+#SBATCH --cpus-per-task=8
+#SBATCH --tasks-per-node=4
 #SBATCH --time 23:00:00
 #SBATCH -e ./utk1.e
 #SBATCH -o ./utk1.o
