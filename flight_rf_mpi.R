@@ -151,6 +151,8 @@ rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
 rf = do.call(combine, rf)  # reusing rf name to release memory after operation
 rf = allgather(rf) 
 rf = do.call(combine, rf)
+
+# Predict on test set
 my_pred = as.vector(predict(rf, my_test))
 
 

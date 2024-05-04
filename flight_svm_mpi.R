@@ -155,6 +155,7 @@ svm_model <- svm(totalFare ~ .,
                  data = train, 
                  type = "eps-regression")
 
+# Predict on test set
 my_pred <- as.vector(predict(svm_model, my_test))
 
 

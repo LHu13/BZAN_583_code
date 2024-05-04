@@ -154,6 +154,7 @@ rm(data)  # no longer needed, free up memory
 lm_model <- lm(totalFare ~ ., 
                data = train)
 
+# Predict on test set
 my_pred <- as.vector(predict(lm_model, my_test))
 
 

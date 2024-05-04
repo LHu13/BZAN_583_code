@@ -175,7 +175,8 @@ nn_model %>% fit(train[,!names(train) %in% "totalFare"],
 
 
 
-my_pred = as.vector(predict(rf, my_test))
+# Predict on test set
+my_pred <- as.vector(nn_model %>% predict(my_test[,!names(my_test) %in% "totalFare"]))
 
 
 
