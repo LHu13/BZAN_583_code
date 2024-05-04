@@ -6,6 +6,7 @@ suppressMessages(library(tidyr))
 suppressMessages(library(parallel))
 suppressMessages(library(lubridate))
 suppressMessages(library(keras))
+suppressMessages(library(tensorflow))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
