@@ -3,9 +3,9 @@ suppressMessages(library(pbdMPI))
 suppressMessages(library(arrow))
 suppressMessages(library(dplyr))
 suppressMessages(library(tidyr))
-suppressMessages(library(randomForest))
 suppressMessages(library(parallel))
 suppressMessages(library(lubridate))
+suppressMessages(library(keras))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
@@ -64,29 +64,29 @@ my_data <- my_data %>%
   #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
   filter(month(segmentsDepartureTimeRaw) %in% c(6,7,8)) %>%
   #keep only the hours, minutes, date
-#  mutate(minuteArrivalTimeRaw = minute(segmentsArrivalTimeRaw))  %>%
-#  mutate(minuteDepartureTimeRaw= minute(segmentsDepartureTimeRaw)) %>%
-#  mutate(hourArrivalTimeRaw = hour(segmentsArrivalTimeRaw))  %>%
-#  mutate(hourDepartureTimeRaw= hour(segmentsDepartureTimeRaw)) %>%
-#  mutate(dayArrivalTimeRaw = day(segmentsArrivalTimeRaw))  %>%
-#  mutate(dayDepartureTimeRaw= day(segmentsDepartureTimeRaw)) %>%
-#  mutate(monthArrivalTimeRaw = month(segmentsArrivalTimeRaw))  %>%
-#  mutate(monthDepartureTimeRaw= month(segmentsDepartureTimeRaw)) %>%
+  mutate(minuteArrivalTimeRaw = minute(segmentsArrivalTimeRaw))  %>%
+  mutate(minuteDepartureTimeRaw= minute(segmentsDepartureTimeRaw)) %>%
+  mutate(hourArrivalTimeRaw = hour(segmentsArrivalTimeRaw))  %>%
+  mutate(hourDepartureTimeRaw= hour(segmentsDepartureTimeRaw)) %>%
+  mutate(dayArrivalTimeRaw = day(segmentsArrivalTimeRaw))  %>%
+  mutate(dayDepartureTimeRaw= day(segmentsDepartureTimeRaw)) %>%
+  mutate(monthArrivalTimeRaw = month(segmentsArrivalTimeRaw))  %>%
+  mutate(monthDepartureTimeRaw= month(segmentsDepartureTimeRaw)) %>%
   mutate(weekdayArrivalTimeRaw = factor(wday(segmentsArrivalTimeRaw)))  %>%
   mutate(weekdayDepartureTimeRaw= factor(wday(segmentsDepartureTimeRaw))) %>%
   #transforms number columns from character to numeric
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
   #transforms the categorical data into factors
-#  mutate(startingAirport = factor(startingAirport)) %>%
-#  mutate(destinationAirport = factor(destinationAirport)) %>%
-#  mutate(isBasicEconomy = factor(isBasicEconomy)) %>%
-#  mutate(isRefundable = factor(isRefundable)) %>%
-#  mutate(segmentsAirlineName = factor(segmentsAirlineName)) %>%
-#  mutate(segmentsEquipmentDescription = factor(segmentsEquipmentDescription)) %>%
-#  mutate(segmentsCabinCode = factor(segmentsCabinCode)) %>%
-#  select(-c("segmentsArrivalTimeRaw",
-#            "segmentsDepartureTimeRaw")) %>%
+  mutate(startingAirport = factor(startingAirport)) %>%
+  mutate(destinationAirport = factor(destinationAirport)) %>%
+  mutate(isBasicEconomy = factor(isBasicEconomy)) %>%
+  mutate(isRefundable = factor(isRefundable)) %>%
+  mutate(segmentsAirlineName = factor(segmentsAirlineName)) %>%
+  mutate(segmentsEquipmentDescription = factor(segmentsEquipmentDescription)) %>%
+  mutate(segmentsCabinCode = factor(segmentsCabinCode)) %>%
+  select(-c("segmentsArrivalTimeRaw",
+            "segmentsDepartureTimeRaw")) %>%
   drop_na() %>%#drops the nas
   collect()
 
@@ -127,11 +127,19 @@ rm(my_data) # remove old data to free up space
 
 
 
-
 ################################ TRAIN/TEST SPLIT ###################################
 # Sample only 100,000 to start with
 i_samp = sample.int(nrow(data), SAMPLE_SIZE) #random sample of integers
 data = data[i_samp, ] #keep only the random selected data
+
+
+
+# Check factor levels and adjust the model dynamically
+if(any(sapply(data, function(x) is.factor(x) && length(levels(x)) < 2))) {
+  data <- data[, sapply(data, function(x) !(is.factor(x) && length(levels(x)) < 2))]
+}
+
+
 
 n = nrow(data)
 n_test = floor(0.2 * n)
@@ -141,17 +149,39 @@ my_test = data[i_test, ][comm.chunk(n_test, form = "vector"), ]
 rm(data)  # no longer needed, free up memory
 
 
-################################ PARALLEL RANDOM FOREST ###################################
-ntree = 64
-my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
-rF = function(nt, tr) 
-  randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = SAMPLE_SIZE/100, norm.votes = FALSE) 
-nc = as.numeric(commandArgs(TRUE)[2]) 
-rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
-rf = do.call(combine, rf)  # reusing rf name to release memory after operation
-rf = allgather(rf) 
-rf = do.call(combine, rf)
+
+
+
+
+################################ NEURAL NETWORK ###################################
+
+# Map the NN model
+nn_model <- keras_model_sequential() %>%
+  layer_dense(units = 128, activation = 'relu', input_shape = c(ncol(training_data)-1)) %>%
+  layer_dense(units = 64, activation = 'relu') %>%
+  layer_dense(units = 1)
+
+# Compile the NN model
+nn_model %>% compile(
+  loss = 'mean_squared_error',
+  optimizer = optimizer_rmsprop(),
+  metrics = list('mean_absolute_error')
+)
+
+# Train the NN model
+nn_model %>% fit(train[,!names(train) %in% "totalFare"], 
+                 train$totalFare, 
+                 epochs = 50, batch_size = 128)
+
+
+
 my_pred = as.vector(predict(rf, my_test))
+
+
+
+
+
+
 
 
 
