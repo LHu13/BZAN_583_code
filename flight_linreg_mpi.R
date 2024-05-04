@@ -81,7 +81,7 @@ my_data <- my_data %>%
     mutate(segmentsEquipmentDescription = factor(segmentsEquipmentDescription)) %>%
     mutate(segmentsCabinCode = factor(segmentsCabinCode)) %>%
     select(-c("segmentsArrivalTimeRaw",
-              "segmentsDepartureTimeRaw"))
+              "segmentsDepartureTimeRaw")) %>%
   drop_na() %>%#drops the nas
   collect()
 
