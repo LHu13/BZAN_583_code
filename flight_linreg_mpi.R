@@ -24,12 +24,12 @@ partitions = get_hive_var(ds, "flightDate")
 my_partitions = partitions[comm.chunk(length(partitions), #comm.chunk splits the data so each processor works on a different piece of dataset
                                       form = "vector")]
 # Print out the MPI rank (i.e. identifier for each processor) and the partitions assigned to each rank
-comm.cat("rank", 
-         comm.rank(), 
-         "partitions", 
-         my_partitions, # selects the distributed partitions
-         "\n", 
-         all.rank = TRUE) # ensures the output is generated from all processors
+#comm.cat("rank", 
+#         comm.rank(), 
+#         "partitions", 
+#         my_partitions, # selects the distributed partitions
+#         "\n", 
+#         all.rank = TRUE) # ensures the output is generated from all processors
 
 
 ################################ DATA CLEANING ###################################
@@ -116,6 +116,20 @@ rm(my_data) # remove old data to free up space
 # TIME IT
 end_time <- Sys.time()
 cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
+
+
+
+
+
+
+
+
+# You can also use summary to check all variables at once
+summary(my_data)
+
+
+
+
 
 
 
