@@ -194,14 +194,14 @@ sse = allreduce(sum((my_pred - my_test$totalFare)^2)) # regression
 # Calculate for RMSE
 rmse = sqrt(sse/n_test)
 # comm.cat("Proportion Correct:", correct/(n_test), "\n") #categorical
-comm.cat("\n RF RMSE:", rmse, "\n")
+comm.cat("\n NN RMSE:", rmse, "\n")
 
 # Calculate for mean
 mean = allreduce(sum(my_test$totalFare)) / n_test
-comm.cat("RF Mean:", mean, "\n")
+comm.cat("NN Mean:", mean, "\n")
 
 # Calculate for COV
-comm.cat("RF Coefficient of Variation:", 100*rmse/mean, "\n")
+comm.cat("NN Coefficient of Variation:", 100*rmse/mean, "\n")
 
 # Check predictions
 #print("Actual")
@@ -212,6 +212,6 @@ comm.cat("RF Coefficient of Variation:", 100*rmse/mean, "\n")
 # TIME IT
 #end_time <- Sys.time()
 #cat("Total Time: ", round(end_time-start_time,2),"\n")
-cat("Parallel Random Forest Code finished running. \n")
+cat("Neural Network Code finished running. \n")
 
 finalize()
