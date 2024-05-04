@@ -2,10 +2,10 @@
 #SBATCH --job-name utk
 #SBATCH --account=bckj-delta-cpu
 #SBATCH --partition=cpu
-#SBATCH --mem=256g
-#SBATCH --nodes=4
-#SBATCH --cpus-per-task=16
-#SBATCH --tasks-per-node=8
+#SBATCH --mem=128g
+#SBATCH --nodes=2
+#SBATCH --cpus-per-task=8
+#SBATCH --tasks-per-node=4
 #SBATCH --time 23:00:00
 #SBATCH -e ./test.e
 #SBATCH -o ./test.o
@@ -22,4 +22,4 @@ module list
 # time Rscript flight_rf_parallel.R --args 8
 # time Rscript flight_rf_parallel.R --args 16
 
-time mpirun -np 16 Rscript flight_linreg_mpi.R --args 16
+time mpirun -np 8 Rscript flight_linreg_mpi.R --args 16
