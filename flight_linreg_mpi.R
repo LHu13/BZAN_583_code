@@ -61,7 +61,7 @@ my_data <- my_data %>%
   mutate(segmentsArrivalTimeRaw = ymd_hms(segmentsArrivalTimeRaw))  %>%
   mutate(segmentsDepartureTimeRaw= ymd_hms(segmentsDepartureTimeRaw))  %>%
   #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
-  filter(month(segmentsDepartureTimeRaw) == c(6,7,8)) %>%
+  filter(month(segmentsDepartureTimeRaw) %in% c(6,7,8)) %>%
   #keep only the hours, minutes, date
   mutate(minuteArrivalTimeRaw = minute(segmentsArrivalTimeRaw))  %>%
   mutate(minuteDepartureTimeRaw= minute(segmentsDepartureTimeRaw)) %>%
