@@ -135,17 +135,14 @@ my_test = data[i_test, ][comm.chunk(n_test, form = "vector"), ]
 rm(data)  # no longer needed, free up memory
 
 
-################################ PARALLEL RANDOM FOREST ###################################
-ntree = 64
-my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
-rF = function(nt, tr) 
-  randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = 1000, norm.votes = FALSE) 
-nc = as.numeric(commandArgs(TRUE)[2]) 
-rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
-rf = do.call(combine, rf)  # reusing rf name to release memory after operation
-rf = allgather(rf) 
-rf = do.call(combine, rf)
-my_pred = as.vector(predict(rf, my_test))
+################################ LINEAR REGRESSION ###################################
+
+# Linear regression model
+lm_model <- lm(totalFare ~ ., 
+               data = train)
+
+my_pred <- as.vector(predict(lm_model, test))
+
 
 
 
