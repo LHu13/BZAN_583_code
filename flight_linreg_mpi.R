@@ -3,7 +3,6 @@ suppressMessages(library(pbdMPI))
 suppressMessages(library(arrow))
 suppressMessages(library(dplyr))
 suppressMessages(library(tidyr))
-suppressMessages(library(randomForest))
 suppressMessages(library(parallel))
 suppressMessages(library(lubridate))
 # Set seed for reproducibility
@@ -123,3 +122,60 @@ cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 
 
+################################ TRAIN/TEST SPLIT ###################################
+# Sample only 100,000 to start with
+i_samp = sample.int(nrow(data), 100000) #random sample of integers
+data = data[i_samp, ] #keep only the random selected data
+
+n = nrow(data)
+n_test = floor(0.2 * n)
+i_test = sample.int(n, n_test)
+train = data[-i_test, ]
+my_test = data[i_test, ][comm.chunk(n_test, form = "vector"), ] 
+rm(data)  # no longer needed, free up memory
+
+
+################################ PARALLEL RANDOM FOREST ###################################
+ntree = 64
+my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
+rF = function(nt, tr) 
+  randomForest(totalFare ~ ., data = tr, ntree = nt, nodesize = 1000, norm.votes = FALSE) 
+nc = as.numeric(commandArgs(TRUE)[2]) 
+rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
+rf = do.call(combine, rf)  # reusing rf name to release memory after operation
+rf = allgather(rf) 
+rf = do.call(combine, rf)
+my_pred = as.vector(predict(rf, my_test))
+
+
+
+
+################################ ACCURACY CHECK ###################################
+# correct = allreduce(sum(my_pred == my_test$your_true_category))  # classification
+# Calculate for SSE
+sse = allreduce(sum((my_pred - my_test$totalFare)^2)) # regression
+# Calculate for RMSE
+rmse = sqrt(sse/n_test)
+# comm.cat("Proportion Correct:", correct/(n_test), "\n") #categorical
+print("################################")
+comm.cat("\n RMSE:", rmse, "\n")
+
+# Calculate for mean
+mean = allreduce(sum(my_test$totalFare)) / n_test
+comm.cat("Mean:", mean, "\n")
+
+# Calculate for COV
+comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
+
+# Check predictions
+print("Actual")
+print(my_test$totalFare[1:100])
+print("Predicted")
+print(my_pred[1:100])
+
+# TIME IT
+end_time <- Sys.time()
+cat("Total Time: ", round(end_time-start_time,2),"\n")
+cat("Linear Regression Code finished running. \n")
+
+finalize()

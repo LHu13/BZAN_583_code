@@ -124,7 +124,7 @@ cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
 
 
-################################ PARALELL RANDOM FOREST ###################################
+################################ TRAIN/TEST SPLIT ###################################
 # Sample only 100,000 to start with
 i_samp = sample.int(nrow(data), 100000) #random sample of integers
 data = data[i_samp, ] #keep only the random selected data
@@ -137,6 +137,7 @@ my_test = data[i_test, ][comm.chunk(n_test, form = "vector"), ]
 rm(data)  # no longer needed, free up memory
 
 
+################################ PARALLEL RANDOM FOREST ###################################
 ntree = 64
 my_ntree = comm.chunk(ntree, form = "number", rng = TRUE, seed = 12345)
 rF = function(nt, tr) 
@@ -147,6 +148,9 @@ rf = do.call(combine, rf)  # reusing rf name to release memory after operation
 rf = allgather(rf) 
 rf = do.call(combine, rf)
 my_pred = as.vector(predict(rf, my_test))
+
+
+
 
 ################################ ACCURACY CHECK ###################################
 # correct = allreduce(sum(my_pred == my_test$your_true_category))  # classification

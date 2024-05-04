@@ -15,4 +15,4 @@ module load r
 module list
 
 
-time mpirun -np 8 Rscript data_rf_mpi_mc.R --args 16
+time mpirun -np 8 Rscript flight_rf_mpi.R --args 16
