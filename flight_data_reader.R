@@ -1,27 +1,42 @@
+# Load relevant libraries and suppress loading messages.
+suppressMessages(library(pbdMPI))
+suppressMessages(library(arrow))
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyr))
+suppressMessages(library(randomForest))
+suppressMessages(library(parallel))
+suppressMessages(library(lubridate))
+# Set seed for reproducibility
+comm.set.seed(seed = 7654321, diff = FALSE) 
 
-set.seed(123) #for reproducibility
-
-## LOAD NECESSARY PACKAGES
-#load all the libraries
-library(arrow)
-library(dplyr)
-library(tidyr)
+# TIME IT
+start_time <- Sys.time()
 
 
+################################ DATA LOADING ###################################
+# Load in data from server.
+ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries")
+# Create function to extract partition information from the file paths in the dataset
+get_hive_var = function(ds, var) # select dataset and partitioning variable
+  sub("/.*$", "", sub(paste0("^.*", var, "="), "", ds$files)) # regex to manipulate strings
+# Extracts the partition variable values from the dataset
+partitions = get_hive_var(ds, "flightDate")  
+# Distributes the partitions evenly across different processors
+my_partitions = partitions[comm.chunk(length(partitions), #comm.chunk splits the data so each processor works on a different piece of dataset
+                                      form = "vector")]
+# Print out the MPI rank (i.e. identifier for each processor) and the partitions assigned to each rank
+comm.cat("rank", 
+         comm.rank(), 
+         "partitions", 
+         my_partitions, # selects the distributed partitions
+         "\n", 
+         all.rank = TRUE) # ensures the output is generated from all processors
 
 
-cat("Starting partitioned data load.\n")
-start_part_time <- Sys.time()
-
-
-## DATA LOADING
-#Load in the dataset
-part_ds <- open_dataset("/projects/bckj/Team3/flight_data_parquet/itineraries", 
-                   partitioning = c("flightDate"), 
-                   unify_schemas = TRUE) 
-
-#Clean, format, and prepare data
-part_data <- part_ds %>%
+################################ DATA CLEANING ###################################
+# Read only the data for the partitions in my_partitions
+my_data <- ds %>% 
+  filter(flightDate %in% my_partitions) %>%
   filter(isNonStop == "True") %>% #remove all the not nonstop flights
   #drop unnecessary columns
   select(-c("segmentsDepartureTimeEpochSeconds", #repeat info
@@ -29,78 +44,85 @@ part_data <- part_ds %>%
             "segmentsAirlineCode", #repeat info
             "legId", #unnecessary
             "travelDuration", #repeat info
-            "fareBasisCode")) %>% #unnecessary
+            "segmentsArrivalAirportCode",
+            "segmentsDepartureAirportCode",
+            "fareBasisCode",
+            "baseFare",
+            "searchDate",
+            "flightDate",
+            "elapsedDays",
+            "isNonStop")) %>% #unnecessary
   collect()
 
-
-
-mid_part_time <- Sys.time()
-cat("Finished partitioned data first clean.", 
-    round(mid_part_time-start_part_time,2),"\n")
-
-
-
-part_data <- part_data %>%
+# Filter, select, mutate, and reduce the data (do separately for debug)
+my_data <- my_data %>%
   #convert time columns into datetime format
-  mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
-  mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
-  #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
-  filter(as.integer(format(segmentsArrivalTimeRaw, "%m")) %in% c(5)) %>%
+  mutate(segmentsArrivalTimeRaw = ymd_hms(segmentsArrivalTimeRaw))  %>%
+  mutate(segmentsDepartureTimeRaw= ymd_hms(segmentsDepartureTimeRaw))  %>%
+  #keep only the hours, minutes, date
+  mutate(minuteArrivalTimeRaw = minute(segmentsArrivalTimeRaw))  %>%
+  mutate(minuteDepartureTimeRaw= minute(segmentsDepartureTimeRaw)) %>%
+  mutate(hourArrivalTimeRaw = hour(segmentsArrivalTimeRaw))  %>%
+  mutate(hourDepartureTimeRaw= hour(segmentsDepartureTimeRaw)) %>%
+  mutate(dayArrivalTimeRaw = day(segmentsArrivalTimeRaw))  %>%
+  mutate(dayDepartureTimeRaw= day(segmentsDepartureTimeRaw)) %>%
+  mutate(monthArrivalTimeRaw = month(segmentsArrivalTimeRaw))  %>%
+  mutate(monthDepartureTimeRaw= month(segmentsDepartureTimeRaw)) %>%
   #transforms number columns from character to numeric
   transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
             segmentsDistance=as.numeric(segmentsDistance)) %>%
-  
-  drop_na() #drops the nas
-
-
-end_part_time <- Sys.time()
-cat("Partitioned data total loading and cleaning time ", 
-    round(end_part_time-start_part_time,2),"\n")
-
-
-
-
-cat("Starting whole data load.\n")
-start_whole_time <- Sys.time()
-
-
-## DATA LOADING
-#Load in the dataset
-ds <- open_dataset("/projects/bckj/Team3/itineraries_nopart") 
-
-#Clean, format, and prepare data
-data <- ds %>%
-  filter(isNonStop == "True") %>% #remove all the not nonstop flights
-  #drop unnecessary columns
-  select(-c("segmentsDepartureTimeEpochSeconds", #repeat info
-            "segmentsArrivalTimeEpochSeconds", #repeat info
-            "segmentsAirlineCode", #repeat info
-            "legId", #unnecessary
-            "travelDuration", #repeat info
-            "fareBasisCode")) %>% #unnecessary
+  #transforms the categorical data into factors
+  mutate(startingAirport = factor(startingAirport)) %>%
+  mutate(destinationAirport = factor(destinationAirport)) %>%
+  mutate(isBasicEconomy = factor(isBasicEconomy)) %>%
+  mutate(isRefundable = factor(isRefundable)) %>%
+  mutate(segmentsAirlineName = factor(segmentsAirlineName)) %>%
+  mutate(segmentsEquipmentDescription = factor(segmentsEquipmentDescription)) %>%
+  mutate(segmentsCabinCode = factor(segmentsCabinCode)) %>%
+  select(-c("segmentsArrivalTimeRaw",
+            "segmentsDepartureTimeRaw"))
+  drop_na() %>%#drops the nas
   collect()
 
 
-
-mid_whole_time <- Sys.time()
-cat("Finished whole data first clean.", 
-    round(mid_whole_time-start_whole_time,2),"\n")
-
-
-data <- data %>%
-  #convert time columns into datetime format
-  mutate(segmentsArrivalTimeRaw =as.POSIXct(segmentsArrivalTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
-  mutate(segmentsDepartureTimeRaw=as.POSIXct(segmentsDepartureTimeRaw, format = "%Y-%m-%dT%H:%M:%OS", tz = "GMT")) %>%
-  #DROPS ALL OTHER MONTHS BESIDES MAY BC DATA FUNKY
-  filter(as.integer(format(segmentsArrivalTimeRaw, "%m")) %in% c(5)) %>%
-  #transforms number columns from character to numeric
-  transform(segmentsDurationInSeconds=as.numeric(segmentsDurationInSeconds),
-            segmentsDistance=as.numeric(segmentsDistance)) %>%
-  
-  drop_na() #drops the nas
+# Print dimensions
+#comm.cat(comm.rank(), 
+#         "dim", 
+#         dim(my_data), "\n", # dim(): outputs dataframe dimensions
+#         all.rank = TRUE) # ensures the output is generated from all processors
 
 
-end_whole_time <- Sys.time()
+# Create a function to gather up the dataframes
+allgather.data.frame = function(x) {
+  cnames = names(x) # gets the column names
+  x = lapply(x, 
+             function(x) do.call(c, 
+                                 allgather(x))) # function that 
+  x = as.data.frame(x)
+  names(x) = cnames
+  x
+}
 
-cat("Whole data total loading and cleaning time ", 
-    round(end_whole_time-start_whole_time,2),"\n")
+# Gather up the data
+data = allgather.data.frame(my_data)
+
+rm(my_data) # remove old data to free up space
+
+## Check on the result
+#comm.cat(comm.rank(), "dim", dim(data), "\n", all.rank = TRUE)
+#comm.print(memuse::Sys.procmem()$size, all.rank = TRUE)
+
+# TIME IT
+end_time <- Sys.time()
+cat("\n Data Preparation Time: ", round(end_time-start_time,2), "\n")
+
+
+
+
+############################# LINEAR REGRESSION ###################################
+
+
+
+
+
+
