@@ -159,7 +159,6 @@ sse = allreduce(sum((my_pred - my_test$totalFare)^2)) # regression
 # Calculate for RMSE
 rmse = sqrt(sse/n_test)
 # comm.cat("Proportion Correct:", correct/(n_test), "\n") #categorical
-print("################################")
 comm.cat("\n RMSE:", rmse, "\n")
 
 # Calculate for mean
@@ -170,10 +169,10 @@ comm.cat("Mean:", mean, "\n")
 comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 
 # Check predictions
-print("Actual")
-print(my_test$totalFare[1:100])
-print("Predicted")
-print(my_pred[1:100])
+#print("Actual")
+#print(my_test$totalFare[1:100])
+#print("Predicted")
+#print(my_pred[1:100])
 
 # TIME IT
 end_time <- Sys.time()
