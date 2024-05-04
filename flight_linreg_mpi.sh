@@ -7,8 +7,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --tasks-per-node=4
 #SBATCH --time 23:00:00
-#SBATCH -e ./test.e
-#SBATCH -o ./test.o
+#SBATCH -e ./utk2.e
+#SBATCH -o ./utk2.o
 
 pwd
 
