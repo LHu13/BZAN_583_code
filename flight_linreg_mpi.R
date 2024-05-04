@@ -167,14 +167,14 @@ sse = allreduce(sum((my_pred - my_test$totalFare)^2)) # regression
 # Calculate for RMSE
 rmse = sqrt(sse/n_test)
 # comm.cat("Proportion Correct:", correct/(n_test), "\n") #categorical
-comm.cat("\n RMSE:", rmse, "\n")
+comm.cat("\n LR RMSE:", rmse, "\n")
 
 # Calculate for mean
 mean = allreduce(sum(my_test$totalFare)) / n_test
-comm.cat("Mean:", mean, "\n")
+comm.cat("LR Mean:", mean, "\n")
 
 # Calculate for COV
-comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
+comm.cat("LR Coefficient of Variation:", 100*rmse/mean, "\n")
 
 # Check predictions
 #print("Actual")
