@@ -10,7 +10,7 @@ suppressMessages(library(tensorflow))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
-SAMPLE_SIZE <- 10000000
+SAMPLE_SIZE <- 9000000
 
 # TIME IT
 #start_time <- Sys.time()
