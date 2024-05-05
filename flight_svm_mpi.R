@@ -9,7 +9,7 @@ suppressMessages(library(e1071))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
-SAMPLE_SIZE <- 6500000
+SAMPLE_SIZE <- 5000000
 
 # TIME IT
 #start_time <- Sys.time()
