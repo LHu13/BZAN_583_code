@@ -154,17 +154,17 @@ nc = as.numeric(commandArgs(TRUE)[2])
 
 rf = mclapply(seq_len(my_ntree), rF, tr = train, mc.cores = nc)
 
-print("finished apply")
+#print("finished apply")
 rf = do.call(combine, rf)  # reusing rf name to release memory after operation
-print("finished first combine")
+#print("finished first combine")
 rf = allgather(rf) 
-print("finished gather")
+#print("finished gather")
 rf = do.call(combine, rf)
 
 # Predict on test set
 my_pred = as.vector(predict(rf, my_test))
 
-print("finished predict")
+#print("finished predict")
 
 
 ################################ ACCURACY CHECK ###################################
