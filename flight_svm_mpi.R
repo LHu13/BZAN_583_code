@@ -9,10 +9,10 @@ suppressMessages(library(e1071))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
-SAMPLE_SIZE <- 5000000
+SAMPLE_SIZE <- 3000000
 
 # TIME IT
-#start_time <- Sys.time()
+start_time <- Sys.time()
 
 
 ################################ DATA LOADING ###################################
@@ -183,8 +183,8 @@ comm.cat("SVM Coefficient of Variation:", 100*rmse/mean, "\n")
 #print(my_pred[1:100])
 
 # TIME IT
-#end_time <- Sys.time()
-#cat("Total Time: ", round(end_time-start_time,2),"\n")
+end_time <- Sys.time()
+cat("Total Time: ", round(end_time-start_time,2),"\n")
 cat("SVM Code finished running. \n")
 
 finalize()
