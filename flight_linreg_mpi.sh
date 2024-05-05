@@ -22,4 +22,4 @@ module list
 # time Rscript flight_rf_parallel.R --args 8
 # time Rscript flight_rf_parallel.R --args 16
 
-time mpirun -np 8 Rscript flight_linreg_mpi.R --args 16
+time mpirun -np 4 Rscript flight_linreg_mpi.R --args 16
