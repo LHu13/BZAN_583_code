@@ -9,7 +9,7 @@ suppressMessages(library(lubridate))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
-SAMPLE_SIZE <- 1900000
+SAMPLE_SIZE <- 1600000
 
 # TIME IT
 #start_time <- Sys.time()
