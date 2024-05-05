@@ -6,7 +6,9 @@ suppressMessages(library(tidyr))
 suppressMessages(library(parallel))
 suppressMessages(library(lubridate))
 suppressMessages(library(keras))
+install_keras()
 suppressMessages(library(tensorflow))
+install_tensorflow(envname = "r-tensorflow")
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
@@ -156,6 +158,8 @@ rm(data)  # no longer needed, free up memory
 
 ################################ NEURAL NETWORK ###################################
 
+install_tensorflow()
+
 # Map the NN model
 nn_model <- keras_model_sequential() %>%
   layer_dense(units = 128, activation = 'relu', input_shape = c(ncol(training_data)-1)) %>%
@@ -173,7 +177,6 @@ nn_model %>% compile(
 nn_model %>% fit(train[,!names(train) %in% "totalFare"], 
                  train$totalFare, 
                  epochs = 50, batch_size = 128)
-
 
 
 # Predict on test set
