@@ -6,6 +6,7 @@ suppressMessages(library(tidyr))
 suppressMessages(library(parallel))
 suppressMessages(library(lubridate))
 suppressMessages(library(keras))
+
 devtools::install_github("rstudio/keras")
 #reticulate::install_python(version = '3.12.3')
 install_keras(tensorflow="nightly")
@@ -14,7 +15,7 @@ suppressMessages(library(tensorflow))
 # Set seed for reproducibility
 comm.set.seed(seed = 7654321, diff = FALSE) 
 
-SAMPLE_SIZE <- 8500000
+SAMPLE_SIZE <- 6500000
 
 # TIME IT
 #start_time <- Sys.time()
