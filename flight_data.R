@@ -123,9 +123,25 @@ rm(my_data) # remove old data to free up space
 #end_time <- Sys.time()
 #cat("Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
+# TIME IT
+end_time <- Sys.time()
+cat("RF Total Time: ", round(end_time-start_time,2),"\n")
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+# TIME IT
+start_time <- Sys.time()
 
 ################################ DATA LOADING ###################################
 # Load in data from server.
@@ -236,6 +252,9 @@ rm(my_data) # remove old data to free up space
 #end_time <- Sys.time()
 #cat("Data Preparation Time: ", round(end_time-start_time,2), "\n")
 
+# TIME IT
+end_time <- Sys.time()
+cat("LR Total Time: ", round(end_time-start_time,2),"\n")
 
 
 
