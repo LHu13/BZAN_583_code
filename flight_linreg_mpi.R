@@ -168,14 +168,14 @@ sse = allreduce(sum((my_pred - my_test$totalFare)^2)) # regression
 # Calculate for RMSE
 rmse = sqrt(sse/n_test)
 # comm.cat("Proportion Correct:", correct/(n_test), "\n") #categorical
-comm.cat("\n LR RMSE:", rmse, "\n")
+comm.cat("\n RMSE:", rmse, "\n")
 
 # Calculate for mean
 mean = allreduce(sum(my_test$totalFare)) / n_test
-comm.cat("LR Mean:", mean, "\n")
+comm.cat("Mean:", mean, "\n")
 
 # Calculate for COV
-comm.cat("LR Coefficient of Variation:", 100*rmse/mean, "\n")
+comm.cat("Coefficient of Variation:", 100*rmse/mean, "\n")
 
 # Check predictions
 #print("Actual")
@@ -186,6 +186,6 @@ comm.cat("LR Coefficient of Variation:", 100*rmse/mean, "\n")
 # TIME IT
 end_time <- Sys.time()
 cat("Total Time: ", round(end_time-start_time,2),"\n")
-cat("Linear Regression Code finished running. \n")
+cat("Code finished running. \n")
 
 finalize()
