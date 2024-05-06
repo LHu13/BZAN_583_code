@@ -36,7 +36,12 @@ my_partitions = partitions[comm.chunk(length(partitions), #comm.chunk splits the
 ################################ DATA CLEANING ###################################
 # Read only the data for the partitions in my_partitions
 my_data <- ds %>% 
-  filter(flightDate %in% my_partitions) %>%
+  filter(flightDate %in% my_partitions) 
+
+
+comm.cat("RF Row Count 1",nrow(my_data), "\n")
+
+my_data <- my_data %>%
   filter(isNonStop == "True") %>% #remove all the not nonstop flights
   #drop unnecessary columns
   select(-c("segmentsDepartureTimeEpochSeconds", #repeat info
@@ -88,6 +93,7 @@ my_data <- my_data %>%
   drop_na() %>%#drops the nas
   collect()
 
+comm.cat("RF Row Count 2",nrow(my_data), "\n")
 
 # Print dimensions
 #comm.cat(comm.rank(), 
