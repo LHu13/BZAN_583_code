@@ -50,7 +50,6 @@ my_data <- ds %>%
             "segmentsDepartureAirportCode",
             "fareBasisCode",
             "baseFare",
-            "searchDate",
             "flightDate",
             "elapsedDays",
             "isNonStop")) %>% #unnecessary
